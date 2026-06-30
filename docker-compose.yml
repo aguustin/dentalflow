@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dentalflow_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dentalflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dentalflow_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-dentalflow_dev}
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dentalflow_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dentalflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: development
+    container_name: dentalflow_api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dentalflow}:${POSTGRES_PASSWORD:-dentalflow_secret}@postgres:5432/${POSTGRES_DB:-dentalflow_dev}
+      NODE_ENV: development
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/api:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - dentalflow_net
+
+volumes:
+  postgres_data:
+
+networks:
+  dentalflow_net:
+    driver: bridge

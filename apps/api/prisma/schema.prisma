@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  memberships  Membership[]
+  roles        Role[]
+  patients     Patient[]
+  appointments Appointment[]
+  subscription Subscription?
+
+  @@map("organizations")
+}
+
+model Membership {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  organizationId String   @map("organization_id")
+  roleId         String   @map("role_id")
+  isActive       Boolean  @default(true) @map("is_active")
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, organizationId])
+  @@map("memberships")
+}
+
+model Role {
+  id             String   @id @default(uuid())
+  name           String
+  organizationId String   @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  memberships     Membership[]
+  rolePermissions RolePermission[]
+
+  @@unique([name, organizationId])
+  @@map("roles")
+}
+
+model Permission {
+  id       String @id @default(uuid())
+  resource String
+  action   String
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique @map("token_hash")
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Patient {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  name           String
+  email          String?
+  phone          String?
+  documentId     String?  @map("document_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@index([organizationId])
+  @@index([organizationId, documentId])
+  @@map("patients")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model Appointment {
+  id             String            @id @default(uuid())
+  organizationId String            @map("organization_id")
+  patientId      String            @map("patient_id")
+  title          String
+  description    String?
+  startTime      DateTime          @map("start_time")
+  endTime        DateTime          @map("end_time")
+  status         AppointmentStatus @default(SCHEDULED)
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, patientId])
+  @@index([organizationId, status])
+  @@index([patientId, startTime, endTime])
+  @@map("appointments")
+}
+
+// ─── BILLING ────────────────────────────────────────────────────────────────
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+model Plan {
+  id              String   @id @default(uuid())
+  name            String   @unique  // 'free' | 'pro' | 'enterprise'
+  displayName     String   @map("display_name")
+  price           Decimal  @db.Decimal(10, 2)
+  currency        String   @default("USD")
+  features        String[]
+  maxPatients     Int      @map("max_patients")      // -1 = unlimited
+  maxAppointments Int      @map("max_appointments")  // -1 = unlimited
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id             String             @id @default(uuid())
+  organizationId String             @unique @map("organization_id")
+  planId         String             @map("plan_id")
+  status         SubscriptionStatus @default(ACTIVE)
+  startDate      DateTime           @map("start_date")
+  endDate        DateTime?          @map("end_date")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model UsageRecord {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  metric         String   // 'patients' | 'appointments'
+  count          Int      @default(0)
+  period         String   // 'all-time' | 'YYYY-MM'
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, metric, period])
+  @@index([organizationId])
+  @@map("usage_records")
+}

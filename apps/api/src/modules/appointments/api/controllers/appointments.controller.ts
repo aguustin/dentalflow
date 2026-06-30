@@ -1,0 +1,106 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
+import { RequirePermissions } from '../../../../shared/decorators/require-permissions.decorator';
+import { RequestUser } from '../../../../shared/types/request-user.type';
+import { CreateAppointmentUseCase } from '../../application/use-cases/create-appointment.use-case';
+import { GetAppointmentUseCase } from '../../application/use-cases/get-appointment.use-case';
+import { ListAppointmentsUseCase } from '../../application/use-cases/list-appointments.use-case';
+import { RescheduleAppointmentUseCase } from '../../application/use-cases/reschedule-appointment.use-case';
+import { CancelAppointmentUseCase } from '../../application/use-cases/cancel-appointment.use-case';
+import { AppointmentDto, ListAppointmentsResult } from '../../application/dtos/appointment.dto';
+import { CreateAppointmentRequest } from '../requests/create-appointment.request';
+import { UpdateAppointmentRequest } from '../requests/update-appointment.request';
+import { ListAppointmentsRequest } from '../requests/list-appointments.request';
+
+@ApiTags('Appointments')
+@ApiBearerAuth()
+@Controller('appointments')
+export class AppointmentsController {
+  constructor(
+    private readonly createAppointment: CreateAppointmentUseCase,
+    private readonly getAppointment: GetAppointmentUseCase,
+    private readonly listAppointments: ListAppointmentsUseCase,
+    private readonly rescheduleAppointment: RescheduleAppointmentUseCase,
+    private readonly cancelAppointment: CancelAppointmentUseCase,
+  ) {}
+
+  @Post()
+  @RequirePermissions('appointments.create')
+  @ApiOperation({ summary: 'Schedule a new appointment for a patient' })
+  create(
+    @Body() body: CreateAppointmentRequest,
+    @CurrentUser() actor: RequestUser,
+  ): Promise<AppointmentDto> {
+    return this.createAppointment.execute({
+      organizationId: actor.organizationId,
+      patientId: body.patientId,
+      title: body.title,
+      description: body.description,
+      startTime: new Date(body.startTime),
+      endTime: new Date(body.endTime),
+    });
+  }
+
+  @Get()
+  @RequirePermissions('appointments.read')
+  @ApiOperation({ summary: 'List appointments in the organization' })
+  findAll(
+    @Query() query: ListAppointmentsRequest,
+    @CurrentUser() actor: RequestUser,
+  ): Promise<ListAppointmentsResult> {
+    return this.listAppointments.execute(actor.organizationId, {
+      patientId: query.patientId,
+      status: query.status,
+      startAfter: query.startAfter ? new Date(query.startAfter) : undefined,
+      startBefore: query.startBefore ? new Date(query.startBefore) : undefined,
+      limit: query.limit,
+      offset: query.offset,
+    });
+  }
+
+  @Get(':id')
+  @RequirePermissions('appointments.read')
+  @ApiOperation({ summary: 'Get an appointment by ID' })
+  findOne(@Param('id') id: string, @CurrentUser() actor: RequestUser): Promise<AppointmentDto> {
+    return this.getAppointment.execute(id, actor.organizationId);
+  }
+
+  @Put(':id')
+  @RequirePermissions('appointments.update')
+  @ApiOperation({
+    summary: 'Update appointment — reschedule, update details, or transition status (CONFIRMED / COMPLETED / NO_SHOW)',
+  })
+  update(
+    @Param('id') id: string,
+    @Body() body: UpdateAppointmentRequest,
+    @CurrentUser() actor: RequestUser,
+  ): Promise<AppointmentDto> {
+    return this.rescheduleAppointment.execute(id, actor.organizationId, {
+      title: body.title,
+      description: body.description,
+      startTime: body.startTime ? new Date(body.startTime) : undefined,
+      endTime: body.endTime ? new Date(body.endTime) : undefined,
+      status: body.status,
+    });
+  }
+
+  @Delete(':id')
+  @RequirePermissions('appointments.delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel an appointment' })
+  cancel(@Param('id') id: string, @CurrentUser() actor: RequestUser): Promise<AppointmentDto> {
+    return this.cancelAppointment.execute(id, actor.organizationId);
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@dentalflow/mobile",
+  "version": "0.0.1",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "eslint src --ext ts,tsx",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .expo"
+  },
+  "dependencies": {
+    "@dentalflow/types": "workspace:*",
+    "@dentalflow/config": "workspace:*",
+    "expo": "~51.0.28",
+    "expo-router": "~3.5.23",
+    "expo-status-bar": "~1.12.1",
+    "react": "18.2.0",
+    "react-native": "0.74.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@types/react": "~18.2.79",
+    "typescript": "^5.5.3"
+  }
+}
