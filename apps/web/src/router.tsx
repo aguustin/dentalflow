@@ -3,18 +3,20 @@ import { AppLayout } from './layout/AppLayout'
 import { Placeholder } from './pages/Placeholder'
 import { NotFound } from './pages/NotFound'
 import { Login } from './pages/Login'
+import { Register } from './pages/Register'
 import { RequireAuth } from './auth/RequireAuth'
 import { HomeRedirect, ModuleRoute } from './org/ModuleRoute'
-import { useTerms } from './org/OrganizationContext'
+import { CustomersPage } from './pages/customers/CustomersPage'
+import { CustomerFormPage } from './pages/customers/CustomerFormPage'
+import { SchedulePage } from './pages/schedule/SchedulePage'
 
 /**
  * Routes. Pages are placeholders until their step of Phase 1 is implemented:
- *   step 4 → /register · step 5 → /customers
- *   step 6 → /schedule · step 7 → /users
+ *   step 7 → /users
  */
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
-  { path: '/register', element: <Placeholder title="Registro" step={4} /> },
+  { path: '/register', element: <Register /> },
   {
     path: '/',
     element: (
@@ -28,7 +30,23 @@ export const router = createBrowserRouter([
         path: 'customers',
         element: (
           <ModuleRoute module="customers">
-            <CustomersPlaceholder />
+            <CustomersPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'customers/new',
+        element: (
+          <ModuleRoute module="customers">
+            <CustomerFormPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'customers/:id',
+        element: (
+          <ModuleRoute module="customers">
+            <CustomerFormPage key="edit" />
           </ModuleRoute>
         ),
       },
@@ -36,7 +54,7 @@ export const router = createBrowserRouter([
         path: 'schedule',
         element: (
           <ModuleRoute module="scheduling">
-            <Placeholder title="Agenda" step={6} />
+            <SchedulePage />
           </ModuleRoute>
         ),
       },
@@ -45,7 +63,3 @@ export const router = createBrowserRouter([
     ],
   },
 ])
-
-function CustomersPlaceholder() {
-  return <Placeholder title={useTerms().customer.plural} step={5} />
-}

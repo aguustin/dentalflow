@@ -50,3 +50,36 @@ button.link { background: none; color: var(--accent); padding: 0; text-align: le
 .sidebar .logout { margin-top: auto; }
 .error { color: #dc2626; margin: 0; }
 .small { font-size: 0.8rem; }
+
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+a.button { background: var(--accent); color: #fff; padding: 8px 12px; border-radius: 4px; text-decoration: none; }
+button.danger { background: #dc2626; }
+.search { width: 100%; max-width: 360px; margin: 12px 0; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
+.table.loading { opacity: 0.6; }
+.pagination { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.narrow { max-width: 420px; margin-top: 12px; }
+fieldset { border: 1px solid var(--border); border-radius: 4px; display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+label.checkbox { flex-direction: row; align-items: center; gap: 8px; }
+.actions { display: flex; gap: 8px; }
+
+button.secondary { background: none; color: var(--fg); border: 1px solid var(--border); }
+fieldset.plain { border: none; padding: 0; margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.row > label { flex: 1; min-width: 110px; }
+.week-nav { margin: 12px 0; flex-wrap: wrap; }
+.week-nav .actions { align-items: center; }
+.week { display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); gap: 8px; overflow-x: auto; }
+.day { border: 1px solid var(--border); border-radius: 6px; padding: 8px; min-height: 160px; display: flex; flex-direction: column; gap: 6px; }
+.day.today { border-color: var(--accent); }
+.day-header { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.9rem; }
+.appt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--fg); border-left: 3px solid var(--accent); }
+.appt.CONFIRMED { border-left-color: #16a34a; }
+.appt.COMPLETED { opacity: 0.6; border-left-color: #6b7280; }
+.appt.CANCELLED, .appt.NO_SHOW { opacity: 0.5; text-decoration: line-through; border-left-color: #dc2626; }
+.badge { font-size: 0.8rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); }
+.overlay { position: fixed; inset: 0; background: rgb(0 0 0 / 0.4); display: grid; place-items: center; padding: 16px; z-index: 10; }
+.dialog { max-width: 520px; max-height: 90vh; overflow-y: auto; background: var(--bg); }
+.picked { display: flex; gap: 12px; align-items: center; }
+.picker-results { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; }

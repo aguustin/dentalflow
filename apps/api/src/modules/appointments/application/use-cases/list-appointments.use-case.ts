@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IAppointmentRepository } from '../../domain/repositories/appointment.repository.interface';
-import { APPOINTMENT_REPOSITORY_TOKEN } from '../../appointments.tokens';
+import { APPOINTMENT_REPOSITORY_TOKEN, CUSTOMER_EXISTENCE_CHECKER_TOKEN } from '../../appointments.tokens';
+import { ICustomerExistenceChecker } from '../services/customer-existence-checker.interface';
 import {
   ListAppointmentsFilters,
   ListAppointmentsResult,
@@ -15,6 +16,8 @@ export class ListAppointmentsUseCase {
   constructor(
     @Inject(APPOINTMENT_REPOSITORY_TOKEN)
     private readonly appointmentRepository: IAppointmentRepository,
+    @Inject(CUSTOMER_EXISTENCE_CHECKER_TOKEN)
+    private readonly customerChecker: ICustomerExistenceChecker,
   ) {}
 
   async execute(
@@ -33,8 +36,13 @@ export class ListAppointmentsUseCase {
       offset,
     });
 
+    const names = await this.customerChecker.findNames(
+      items.map((a) => a.customerId),
+      organizationId,
+    );
+
     return {
-      items: items.map(toAppointmentDto),
+      items: items.map((a) => ({ ...toAppointmentDto(a), customerName: names.get(a.customerId) })),
       total,
       limit,
       offset,

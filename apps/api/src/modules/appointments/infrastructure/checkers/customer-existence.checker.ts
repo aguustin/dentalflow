@@ -12,4 +12,13 @@ export class PrismaCustomerExistenceChecker implements ICustomerExistenceChecker
     });
     return count > 0;
   }
+
+  async findNames(customerIds: string[], organizationId: string): Promise<Map<string, string>> {
+    if (customerIds.length === 0) return new Map();
+    const rows = await this.prisma.customer.findMany({
+      where: { id: { in: [...new Set(customerIds)] }, organizationId },
+      select: { id: true, name: true },
+    });
+    return new Map(rows.map((r) => [r.id, r.name]));
+  }
 }

@@ -4,6 +4,8 @@ export interface AppointmentDto {
   id: string;
   organizationId: string;
   customerId: string;
+  /** Only present in listings */
+  customerName?: string;
   title: string;
   description: string | null;
   startTime: Date;

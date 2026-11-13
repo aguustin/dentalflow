@@ -16,7 +16,7 @@ import { ISubscriptionRepository } from '../../../billing/domain/repositories/su
 import { IEventBus } from '../../../../shared/types/event-bus.interface';
 import { TOKENS } from '../../../../shared/injection-tokens';
 import { ONBOARDING_TOKENS } from '../../organizations.tokens';
-import { hashPassword } from '../../../../shared/utils/hash.util';
+import { hashPassword, verifyPassword } from '../../../../shared/utils/hash.util';
 import { OrganizationCreatedEvent } from '../../../../domain/events/organization-created.event';
 import { MembershipCreatedEvent } from '../../../../domain/events/membership-created.event';
 import { OwnerAssignedEvent } from '../../domain/events/owner-assigned.event';
@@ -54,6 +54,19 @@ export class CreateOrganizationOnboardingUseCase {
       throw new ConflictException(`Organization slug '${command.slug}' is already taken`);
     }
 
+    // ── Step 1b: An existing user can own a new org only with their own password ─
+    // Prevents attaching someone else's account as owner, and avoids creating an
+    // org whose owner then cannot log in with the password just typed.
+    const existingUser = await this.userRepo.findByEmail(command.ownerEmail);
+    if (
+      existingUser &&
+      !(await verifyPassword(command.ownerPassword, existingUser.passwordHash))
+    ) {
+      throw new ConflictException(
+        'This email is already registered. Use your current password to create another organization.',
+      );
+    }
+
     // ── Step 2: Create organization from its vertical template ────────────────
     const vertical = getVertical(command.vertical ?? DEFAULT_VERTICAL);
     const org = await this.orgRepo.create({
@@ -73,7 +86,7 @@ export class CreateOrganizationOnboardingUseCase {
     });
 
     // ── Step 4: Create or fetch owner user ────────────────────────────────────
-    let ownerUser = await this.userRepo.findByEmail(command.ownerEmail);
+    let ownerUser = existingUser;
     if (!ownerUser) {
       const passwordHash = await hashPassword(command.ownerPassword);
       ownerUser = await this.userRepo.create({

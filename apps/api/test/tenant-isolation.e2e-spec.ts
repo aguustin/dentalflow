@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import request = require('supertest');
 import { PrismaService } from '../src/infrastructure/database/prisma.service';
 import { createTenant, createTestApp, TestTenant } from './helpers';
 
@@ -76,6 +77,23 @@ describe('Tenant isolation (e2e)', () => {
     const customer = await a.api().get(`/customers/${ids.customer}`).expect(200);
     expect(customer.body.name).toBe('Customer A');
     await a.api().get(`/appointments/${ids.appointment}`).expect(200);
+  });
+
+  describe('onboarding', () => {
+    it('does not attach an existing account as owner without its password', async () => {
+      const ownerEmail = `owner@${a.slug}.test`; // already exists (owner of org A)
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/organizations')
+        .send({
+          organizationName: 'Hijack',
+          slug: `hijack-${Date.now()}`,
+          ownerEmail,
+          ownerFirstName: 'X',
+          ownerLastName: 'Y',
+          ownerPassword: 'not-the-password',
+        });
+      expect(res.status).toBe(409);
+    });
   });
 
   describe('module gating', () => {

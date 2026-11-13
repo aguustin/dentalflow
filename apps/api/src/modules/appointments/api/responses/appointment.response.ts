@@ -10,6 +10,9 @@ export class AppointmentResponse {
   @ApiProperty()
   customerId: string;
 
+  @ApiPropertyOptional({ description: 'Customer display name (only in listings)' })
+  customerName?: string;
+
   @ApiProperty()
   title: string;
 

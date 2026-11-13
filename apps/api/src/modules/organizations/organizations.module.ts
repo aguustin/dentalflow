@@ -13,6 +13,7 @@ import { UpdateOrganizationUseCase } from './application/use-cases/update-organi
 
 // API
 import { OrganizationsOnboardingController } from './api/controllers/organizations-onboarding.controller';
+import { VerticalsController } from './api/controllers/verticals.controller';
 
 /**
  * OrganizationOnboardingModule — Platform entry point.
@@ -35,7 +36,7 @@ import { OrganizationsOnboardingController } from './api/controllers/organizatio
  * so that POST /organizations registers the onboarding flow as the primary handler.
  */
 @Module({
-  controllers: [OrganizationsOnboardingController],
+  controllers: [OrganizationsOnboardingController, VerticalsController],
   providers: [
     // ── Local billing repo providers ────────────────────────────────────────
     // These are scoped to this module. The same Prisma implementations are
