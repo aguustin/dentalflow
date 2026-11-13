@@ -93,4 +93,21 @@ test('register, create a patient and book an appointment', async ({ page }) => {
   await expect(page.getByLabel('Monto')).toHaveValue('25000')
   await page.getByRole('button', { name: 'Registrar pago' }).click()
   await expect(page.getByText('Pagada')).toBeVisible()
+
+  // ── Clinical record: allergy alert + odontogram ────────────────────────────
+  await page.getByRole('link', { name: 'Pacientes' }).click()
+  await page.getByRole('link', { name: patient }).click()
+  await page.getByRole('link', { name: 'Historia clínica' }).click()
+  await page.getByRole('button', { name: 'Anamnesis' }).click()
+  await page.getByLabel('Alergias').fill('Penicilina')
+  await page.getByRole('button', { name: 'Guardar anamnesis' }).click()
+  await expect(page.getByText('Alergias: Penicilina')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Odontograma' }).click()
+  await page.getByRole('button', { name: '16', exact: true }).click()
+  await page.getByLabel('Estado').selectOption({ label: 'Corona' })
+  await page.getByRole('button', { name: 'Registrar' }).click()
+  await expect(page.getByRole('button', { name: 'Registrar' })).toBeHidden() // panel closes after saving
+  await expect(page.getByRole('button', { name: '16', exact: true })).toHaveAttribute('title', 'Corona')
+  await page.screenshot({ path: 'test-results/odontogram.png', fullPage: true })
 })

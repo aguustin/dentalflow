@@ -41,6 +41,8 @@ const CORE_PERMISSIONS = [
   { resource: 'sales', action: 'update' },
   { resource: 'inventory', action: 'read' },
   { resource: 'inventory', action: 'update' },
+  { resource: 'clinical', action: 'read' },
+  { resource: 'clinical', action: 'update' },
   { resource: 'billing', action: 'create' },
   { resource: 'billing', action: 'read' },
   { resource: 'billing', action: 'update' },
@@ -65,7 +67,7 @@ async function main() {
   // 2. Create demo organization
   const org = await prisma.organization.upsert({
     where: { slug: 'demo-clinic' },
-    create: { name: 'Demo Clinic', slug: 'demo-clinic', vertical: 'dental', enabledModules: ['customers', 'scheduling', 'catalog', 'sales', 'inventory'] },
+    create: { name: 'Demo Clinic', slug: 'demo-clinic', vertical: 'dental', enabledModules: ['customers', 'scheduling', 'catalog', 'sales', 'inventory', 'clinical'] },
     update: {},
   });
   console.log(`✓ Organization: ${org.name} (${org.slug})`);

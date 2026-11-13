@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { Customer } from '@dentalflow/types'
-import { useOrganization } from '../../org/OrganizationContext'
+import { useHasModule, useOrganization } from '../../org/OrganizationContext'
 import { AttributeFields, AttributeValues } from '../../components/AttributeFields'
 
 interface FormState {
@@ -24,6 +24,7 @@ export function CustomerFormPage() {
   const queryClient = useQueryClient()
   const org = useOrganization()
   const terms = org.vertical.terminology.customer
+  const hasClinical = useHasModule('clinical')
 
   const existing = useQuery({
     queryKey: ['customers', id],
@@ -102,7 +103,14 @@ export function CustomerFormPage() {
   return (
     <section>
       <Link to="/customers">← Volver</Link>
-      <h1>{isNew ? `Nuevo ${terms.singular.toLowerCase()}` : form.name || terms.singular}</h1>
+      <div className="toolbar">
+        <h1>{isNew ? `Nuevo ${terms.singular.toLowerCase()}` : form.name || terms.singular}</h1>
+        {!isNew && hasClinical && (
+          <Link className="button" to={`/customers/${id}/clinical`}>
+            Historia clínica
+          </Link>
+        )}
+      </div>
 
       <form className="form narrow" onSubmit={onSubmit}>
         <label>

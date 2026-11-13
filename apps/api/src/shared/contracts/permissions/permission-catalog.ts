@@ -58,6 +58,10 @@ export const PERMISSION_CATALOG = {
     READ: 'inventory.read',
     UPDATE: 'inventory.update',
   },
+  CLINICAL: {
+    READ: 'clinical.read',
+    UPDATE: 'clinical.update',
+  },
   BILLING: {
     CREATE: 'billing.create',
     READ: 'billing.read',

@@ -147,6 +147,15 @@ describe('Tenant isolation (e2e)', () => {
     ['POST inventory purchase', () => b.api().post(`/inventory/${ids.catalogItem}/purchase`).send({ quantity: 1 })],
     ['POST inventory adjust', () => b.api().post(`/inventory/${ids.catalogItem}/adjust`).send({ countedQuantity: 0 })],
     ['PUT inventory min stock', () => b.api().put(`/inventory/${ids.catalogItem}/min-stock`).send({ minStock: 1 })],
+    ['GET clinical record', () => b.api().get(`/clinical/${ids.customer}`)],
+    ['GET clinical notes', () => b.api().get(`/clinical/${ids.customer}/notes`)],
+    ['POST clinical note', () => b.api().post(`/clinical/${ids.customer}/notes`).send({ content: 'x' })],
+    ['PUT anamnesis', () => b.api().put(`/clinical/${ids.customer}/anamnesis`).send({ anamnesis: {} })],
+    [
+      'POST odontogram',
+      () => b.api().post(`/clinical/${ids.customer}/odontogram`).send({ entries: [{ tooth: 11, surface: null, condition: 'MISSING' }] }),
+    ],
+    ['GET odontogram history', () => b.api().get(`/clinical/${ids.customer}/odontogram/history`)],
     ['GET availability of foreign staff', () => b.api().get(`/appointments/availability?staffId=${ids.staff}&date=2030-01-10`)],
   ];
 
@@ -300,7 +309,7 @@ describe('Tenant isolation (e2e)', () => {
       expect(res.body.vertical.key).toBe('dental');
       expect(res.body.vertical.terminology.customer.singular).toBe('Paciente');
       expect(res.body.vertical).not.toHaveProperty('roles');
-      expect(res.body.enabledModules).toEqual(['customers', 'scheduling', 'catalog', 'sales', 'inventory']);
+      expect(res.body.enabledModules).toEqual(['customers', 'scheduling', 'catalog', 'sales', 'inventory', 'clinical']);
     });
   });
 });

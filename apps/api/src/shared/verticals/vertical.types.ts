@@ -5,7 +5,14 @@
  */
 
 /** Feature modules that can be enabled per organization. Add keys only when the module exists. */
-export const MODULE_KEYS = ['customers', 'scheduling', 'catalog', 'sales', 'inventory'] as const;
+export const MODULE_KEYS = [
+  'customers',
+  'scheduling',
+  'catalog',
+  'sales',
+  'inventory',
+  'clinical',
+] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 export type AttributeFieldType = 'text' | 'number' | 'date' | 'select' | 'boolean';
@@ -44,6 +51,10 @@ export interface VerticalTemplate {
   };
   /** Extra fields stored in Customer.attributes */
   customerAttributes: AttributeField[];
+  /** Health-care verticals: schema of the medical history (anamnesis) */
+  clinical?: {
+    anamnesisFields: AttributeField[];
+  };
   /** Roles created on onboarding in addition to 'admin' (which always gets every permission) */
   roles: VerticalRoleTemplate[];
 }

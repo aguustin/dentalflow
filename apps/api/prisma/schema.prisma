@@ -135,8 +135,11 @@ model Customer {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  appointments Appointment[]
-  sales        Sale[]
+  appointments    Appointment[]
+  sales           Sale[]
+  clinicalRecord  ClinicalRecord?
+  clinicalNotes   ClinicalNote[]
+  toothConditions ToothCondition[]
 
   @@index([organizationId])
   @@index([organizationId, documentId])
@@ -431,6 +434,61 @@ model StockMovement {
   @@index([catalogItemId, createdAt])
   @@index([saleId])
   @@map("stock_movements")
+}
+
+// ─── CLINICAL (dental vertical) ─────────────────────────────────────────────
+
+/// Medical history (anamnesis), one per customer. Fields defined by the vertical template.
+model ClinicalRecord {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  customerId     String   @unique @map("customer_id")
+  anamnesis      Json     @default("{}")
+  updatedBy      String?  @map("updated_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("clinical_records")
+}
+
+/// Progress notes. Append-only: never edited or deleted (clinical record integrity).
+model ClinicalNote {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  customerId     String   @map("customer_id")
+  authorId       String   @map("author_id")
+  /// Author name snapshot at writing time
+  authorName     String   @map("author_name")
+  content        String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, createdAt])
+  @@map("clinical_notes")
+}
+
+/// Odontogram as an append-only log: current state = latest entry per (tooth, surface).
+model ToothCondition {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  customerId     String   @map("customer_id")
+  /// FDI notation: 11–48 permanent, 51–85 deciduous
+  tooth          Int
+  /// O, M, D, V, L — or null for the whole tooth
+  surface        String?
+  condition      String
+  notes          String?
+  recordedBy     String   @map("recorded_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, tooth, createdAt])
+  @@map("tooth_conditions")
 }
 
 // ─── BILLING ────────────────────────────────────────────────────────────────

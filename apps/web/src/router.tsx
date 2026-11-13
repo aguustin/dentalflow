@@ -19,6 +19,7 @@ import { SaleDetailPage } from './pages/sales/SaleDetailPage'
 import { CashPage } from './pages/sales/CashPage'
 import { InventoryPage } from './pages/inventory/InventoryPage'
 import { InventoryItemPage } from './pages/inventory/InventoryItemPage'
+import { ClinicalPage } from './pages/clinical/ClinicalPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
@@ -165,6 +166,14 @@ export const router = createBrowserRouter([
         element: (
           <ModuleRoute module="inventory">
             <InventoryItemPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'customers/:id/clinical',
+        element: (
+          <ModuleRoute module="clinical">
+            <ClinicalPage />
           </ModuleRoute>
         ),
       },

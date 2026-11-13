@@ -3,7 +3,7 @@ import { VerticalTemplate } from './vertical.types';
 export const DENTAL_VERTICAL: VerticalTemplate = {
   key: 'dental',
   label: 'Clínica dental',
-  modules: ['customers', 'scheduling', 'catalog', 'sales', 'inventory'],
+  modules: ['customers', 'scheduling', 'catalog', 'sales', 'inventory', 'clinical'],
   homeModule: 'scheduling',
   terminology: {
     customer: { singular: 'Paciente', plural: 'Pacientes' },
@@ -16,6 +16,20 @@ export const DENTAL_VERTICAL: VerticalTemplate = {
     { key: 'healthInsurance', label: 'Obra social / prepaga', type: 'text' },
     { key: 'healthInsuranceNumber', label: 'Nº de afiliado', type: 'text' },
   ],
+  clinical: {
+    anamnesisFields: [
+      { key: 'allergies', label: 'Alergias', type: 'text' },
+      { key: 'medications', label: 'Medicación actual', type: 'text' },
+      { key: 'diabetes', label: 'Diabetes', type: 'boolean' },
+      { key: 'hypertension', label: 'Hipertensión', type: 'boolean' },
+      { key: 'heartDisease', label: 'Enfermedad cardíaca', type: 'boolean' },
+      { key: 'bleedingDisorder', label: 'Trastornos de coagulación', type: 'boolean' },
+      { key: 'pregnant', label: 'Embarazo', type: 'boolean' },
+      { key: 'smoker', label: 'Fumador/a', type: 'boolean' },
+      { key: 'previousSurgeries', label: 'Cirugías previas', type: 'text' },
+      { key: 'observations', label: 'Observaciones', type: 'text' },
+    ],
+  },
   roles: [
     {
       name: 'reception',
@@ -48,6 +62,8 @@ export const DENTAL_VERTICAL: VerticalTemplate = {
         'catalog.read',
         'sales.read',
         'inventory.read',
+        'clinical.read',
+        'clinical.update',
       ],
     },
   ],

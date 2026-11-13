@@ -1,6 +1,6 @@
 /** Organization and business vertical (template) as returned by GET /organizations/current. */
 
-export type ModuleKey = 'customers' | 'scheduling' | 'catalog' | 'sales' | 'inventory'
+export type ModuleKey = 'customers' | 'scheduling' | 'catalog' | 'sales' | 'inventory' | 'clinical'
 
 export interface Terminology {
   singular: string
@@ -27,6 +27,8 @@ export interface Vertical {
     resource: Terminology
   }
   customerAttributes: AttributeField[]
+  /** Health-care verticals only */
+  clinical?: { anamnesisFields: AttributeField[] }
 }
 
 export interface CurrentOrganization {

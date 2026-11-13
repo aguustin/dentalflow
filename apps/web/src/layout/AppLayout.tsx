@@ -23,13 +23,14 @@ function Shell() {
     catalog: 'Catálogo',
     sales: 'Ventas',
     inventory: 'Inventario',
+    clinical: '',
   }
   const lowStock = useLowStockCount(org.enabledModules.includes('inventory'))
   // Home module first, then the rest in template order; only enabled ones.
   const modules = [
     org.vertical.homeModule,
     ...org.vertical.modules.filter((m) => m !== org.vertical.homeModule),
-  ].filter((m) => org.enabledModules.includes(m))
+  ].filter((m) => org.enabledModules.includes(m) && moduleLabels[m])
 
   return (
     <div className="layout">

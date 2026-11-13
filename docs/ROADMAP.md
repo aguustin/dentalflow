@@ -174,7 +174,13 @@ Sin tests para el CRUD del catálogo.
 
 ---
 
-### Fase 5 — Vertical Dental
+### Fase 5 — Vertical Dental 🟡 *(entrega A completada 2026-11-13: historia clínica + odontograma)*
+
+> **Entrega A:** módulo `clinical` (solo plantilla dental; acceso solo admin y profesionales — datos de salud).
+> Anamnesis con schema en la plantilla (`vertical.clinical.anamnesisFields`) y alerta de alergias; notas de
+> evolución append-only con nombre del autor congelado; odontograma FDI (permanente y temporal) como log
+> append-only donde el estado actual es la última entrada por pieza/cara (`HEALTHY` limpia) e historial por pieza.
+> **Entrega B pendiente:** planes de tratamiento, plan → venta, adjuntos.
 | Tarea | Cómo |
 |---|---|
 | Historia clínica | `ClinicalRecord` por cliente: anamnesis (JSONB con schema), alergias, notas de evolución con autor y fecha (sólo agregar, sin editar). |
