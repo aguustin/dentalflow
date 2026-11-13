@@ -1,9 +1,11 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from './layout/AppLayout'
 import { Placeholder } from './pages/Placeholder'
 import { NotFound } from './pages/NotFound'
 import { Login } from './pages/Login'
 import { RequireAuth } from './auth/RequireAuth'
+import { HomeRedirect, ModuleRoute } from './org/ModuleRoute'
+import { useTerms } from './org/OrganizationContext'
 
 /**
  * Routes. Pages are placeholders until their step of Phase 1 is implemented:
@@ -21,11 +23,29 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <Navigate to="/schedule" replace /> },
-      { path: 'customers', element: <Placeholder title="Clientes" step={5} /> },
-      { path: 'schedule', element: <Placeholder title="Agenda" step={6} /> },
+      { index: true, element: <HomeRedirect /> },
+      {
+        path: 'customers',
+        element: (
+          <ModuleRoute module="customers">
+            <CustomersPlaceholder />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'schedule',
+        element: (
+          <ModuleRoute module="scheduling">
+            <Placeholder title="Agenda" step={6} />
+          </ModuleRoute>
+        ),
+      },
       { path: 'users', element: <Placeholder title="Usuarios" step={7} /> },
       { path: '*', element: <NotFound /> },
     ],
   },
 ])
+
+function CustomersPlaceholder() {
+  return <Placeholder title={useTerms().customer.plural} step={5} />
+}

@@ -49,3 +49,4 @@ button:disabled { opacity: 0.6; cursor: default; }
 button.link { background: none; color: var(--accent); padding: 0; text-align: left; }
 .sidebar .logout { margin-top: auto; }
 .error { color: #dc2626; margin: 0; }
+.small { font-size: 0.8rem; }
