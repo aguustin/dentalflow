@@ -6,6 +6,7 @@ import { RequirePermissions } from '../../../shared/decorators/require-permissio
 import { RequestUser } from '../../../shared/types/request-user.type';
 import { CreateOrganizationUseCase } from '../../../application/use-cases/organizations/create-organization.use-case';
 import { AddUserToOrganizationUseCase } from '../../../application/use-cases/organizations/add-user-to-organization.use-case';
+import { ListMembersUseCase, MemberDto } from '../../../application/use-cases/organizations/list-members.use-case';
 import {
   AddUserToOrganizationDto,
   CreateOrganizationDto,
@@ -18,7 +19,16 @@ export class OrganizationsController {
   constructor(
     private readonly createOrganization: CreateOrganizationUseCase,
     private readonly addUserToOrganization: AddUserToOrganizationUseCase,
+    private readonly listMembers: ListMembersUseCase,
   ) {}
+
+  @ApiBearerAuth()
+  @Get('members')
+  @RequirePermissions('users.read')
+  @ApiOperation({ summary: 'List members of the current organization with their role' })
+  members(@CurrentUser() actor: RequestUser): Promise<MemberDto[]> {
+    return this.listMembers.execute(actor.organizationId);
+  }
 
   @Public()
   @Post()

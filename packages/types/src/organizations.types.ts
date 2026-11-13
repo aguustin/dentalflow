@@ -1,4 +1,4 @@
-/** API response types used by the web. Will move to packages/types in step 8. */
+/** Organization and business vertical (template) as returned by GET /organizations/current. */
 
 export type ModuleKey = 'customers' | 'scheduling'
 
@@ -36,36 +36,4 @@ export interface CurrentOrganization {
   isActive: boolean
   createdAt: string
   subscription: { planName: string; status: string; startDate: string } | null
-}
-
-export interface Customer {
-  id: string
-  name: string
-  email: string | null
-  phone: string | null
-  documentId: string | null
-  attributes: Record<string, string | number | boolean>
-  createdAt: string
-  updatedAt: string
-}
-
-export interface Paginated<T> {
-  items: T[]
-  total: number
-  limit: number
-  offset: number
-}
-
-export type AppointmentStatus = 'SCHEDULED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
-
-export interface Appointment {
-  id: string
-  customerId: string
-  customerName?: string
-  title: string
-  description: string | null
-  startTime: string
-  endTime: string
-  durationMinutes: number
-  status: AppointmentStatus
 }

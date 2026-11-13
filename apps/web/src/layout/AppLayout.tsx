@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { ModuleKey } from '../lib/types'
+import { ModuleKey } from '@dentalflow/types'
 import { MODULE_ROUTES, OrganizationProvider, useOrganization } from '../org/OrganizationContext'
 
 export function AppLayout() {

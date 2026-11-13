@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useContext } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import { CurrentOrganization, ModuleKey } from '../lib/types'
+import { CurrentOrganization, ModuleKey } from '@dentalflow/types'
 
 /** Route of each module's main screen. Add an entry when a module gets a screen. */
 export const MODULE_ROUTES: Record<ModuleKey, string> = {

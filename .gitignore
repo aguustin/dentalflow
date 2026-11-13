@@ -54,3 +54,7 @@ coverage/
 
 # Docker
 .docker/
+
+# Playwright
+test-results/
+playwright-report/

@@ -90,8 +90,13 @@ Es la fase más barata ahora y la más cara después: todavía no hay datos de p
 
 ---
 
-### Fase 1 — Frontend web MVP
+### Fase 1 — Frontend web MVP ✅ *(completada 2026-11-13)*
 Sin interfaz el producto no se puede probar con usuarios reales.
+
+> **Resultado:** frontend **mínimo y funcional** para pruebas (CSS propio de un archivo, sin librería de estilos).
+> El diseño visual se trabaja en una etapa dedicada. Quedó fuera el selector de organización (se cambia de org
+> volviendo a iniciar sesión) y agregar a la org usuarios que ya tienen cuenta (requiere invitaciones).
+> Smoke test: `pnpm --filter @dentalflow/web test:e2e` (levanta su propia API y web contra la base de test).
 
 | Tarea | Cómo |
 |---|---|

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import { Appointment, Paginated } from '../../lib/types'
+import { Appointment, Paginated } from '@dentalflow/types'
 import { addDays, formatDay, formatTime, sameDay, startOfWeek } from '../../lib/dates'
 import { useTerms } from '../../org/OrganizationContext'
 import { AppointmentDialog, STATUS_LABELS } from './AppointmentDialog'

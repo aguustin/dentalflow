@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import { ModuleKey } from '../lib/types'
+import { ModuleKey } from '@dentalflow/types'
 import { MODULE_ROUTES, useHasModule, useOrganization } from './OrganizationContext'
 
 /** Renders children only if the module is enabled for the organization. */

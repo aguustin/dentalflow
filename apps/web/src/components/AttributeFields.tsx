@@ -1,4 +1,4 @@
-import { AttributeField } from '../lib/types'
+import { AttributeField } from '@dentalflow/types'
 
 export type AttributeValues = Record<string, string | number | boolean>
 

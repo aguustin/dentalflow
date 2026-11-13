@@ -1,8 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { RequirePermissions } from '../../../shared/decorators/require-permissions.decorator';
 import { RequestUser } from '../../../shared/types/request-user.type';
+import { IRoleRepository } from '../../../domain/repositories/role.repository.interface';
+import { TOKENS } from '../../../shared/injection-tokens';
 import { CreateRoleUseCase } from '../../../application/use-cases/rbac/create-role.use-case';
 import { AssignRoleUseCase } from '../../../application/use-cases/rbac/assign-role.use-case';
 import { AssignRoleDto, CreateRoleDto, RoleResponseDto } from '../../../application/dtos/role.dto';
@@ -14,7 +16,16 @@ export class RolesController {
   constructor(
     private readonly createRole: CreateRoleUseCase,
     private readonly assignRole: AssignRoleUseCase,
+    @Inject(TOKENS.ROLE_REPOSITORY) private readonly roleRepository: IRoleRepository,
   ) {}
+
+  @Get()
+  @RequirePermissions('users.read')
+  @ApiOperation({ summary: 'List roles of the current organization' })
+  async list(@CurrentUser() actor: RequestUser): Promise<{ id: string; name: string }[]> {
+    const roles = await this.roleRepository.findAllByOrganization(actor.organizationId);
+    return roles.map(({ id, name }) => ({ id, name }));
+  }
 
   @Post()
   @RequirePermissions('roles.create')

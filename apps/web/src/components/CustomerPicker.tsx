@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import { Customer, Paginated } from '../lib/types'
+import { Customer, Paginated } from '@dentalflow/types'
 
 export interface PickedCustomer {
   id: string

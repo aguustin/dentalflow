@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { IMembershipRepository } from '../../../domain/repositories/membership.repository.interface';
 import { IRoleRepository } from '../../../domain/repositories/role.repository.interface';
 import { IEventBus } from '../../../shared/types/event-bus.interface';
@@ -17,6 +17,11 @@ export class AssignRoleUseCase {
   ) {}
 
   async execute(dto: AssignRoleDto, actor: RequestUser): Promise<void> {
+    // Prevents an admin from accidentally locking themselves (and the org) out.
+    if (dto.userId === actor.userId) {
+      throw new BadRequestException('You cannot change your own role');
+    }
+
     const role = await this.roleRepository.findById(dto.roleId);
     if (!role || role.organizationId !== actor.organizationId) {
       throw new NotFoundException('Role not found in this organization');

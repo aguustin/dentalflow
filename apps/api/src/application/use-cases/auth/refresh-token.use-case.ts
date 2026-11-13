@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import { IRefreshTokenRepository } from '../../../domain/repositories/refresh-token.repository.interface';
+import { IMembershipRepository } from '../../../domain/repositories/membership.repository.interface';
 import { TOKENS } from '../../../shared/injection-tokens';
 import { hashToken } from '../../../shared/utils/hash.util';
 import { RefreshTokenDto, LoginResponseDto } from '../../dtos/auth.dto';
@@ -13,6 +14,8 @@ export class RefreshTokenUseCase {
   constructor(
     @Inject(TOKENS.REFRESH_TOKEN_REPOSITORY)
     private readonly refreshTokenRepository: IRefreshTokenRepository,
+    @Inject(TOKENS.MEMBERSHIP_REPOSITORY)
+    private readonly membershipRepository: IMembershipRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
@@ -43,6 +46,16 @@ export class RefreshTokenUseCase {
     // Rotate: revoke old token, issue new pair
     await this.refreshTokenRepository.revoke(stored.id);
 
+    // Re-read the membership so role changes and removals take effect on the next refresh
+    // (instead of carrying the old roleId forever).
+    const membership = await this.membershipRepository.findByUserAndOrganization(
+      payload.userId,
+      payload.organizationId,
+    );
+    if (!membership || !membership.isActive) {
+      throw new UnauthorizedException('No longer a member of this organization');
+    }
+
     const accessSecret = this.configService.get<string>('jwt.accessSecret');
     const accessExpiresIn = this.configService.get<string>('jwt.accessExpiresIn');
     const refreshExpiresIn = this.configService.get<string>('jwt.refreshExpiresIn');
@@ -51,7 +64,7 @@ export class RefreshTokenUseCase {
     const newPayload: JwtPayload = {
       userId: payload.userId,
       organizationId: payload.organizationId,
-      roleId: payload.roleId,
+      roleId: membership.roleId,
     };
 
     const accessToken = this.jwtService.sign(newPayload, {

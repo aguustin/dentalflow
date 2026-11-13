@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@dentalflow/config": "workspace:*",
@@ -21,6 +22,7 @@
     "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.1",

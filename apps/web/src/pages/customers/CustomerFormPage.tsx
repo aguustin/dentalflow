@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import { Customer } from '../../lib/types'
+import { Customer } from '@dentalflow/types'
 import { useOrganization } from '../../org/OrganizationContext'
 import { AttributeFields, AttributeValues } from '../../components/AttributeFields'
 

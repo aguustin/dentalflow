@@ -96,6 +96,67 @@ describe('Tenant isolation (e2e)', () => {
     });
   });
 
+  describe('members and roles', () => {
+    const roleId = async (t: TestTenant, name: string): Promise<string> => {
+      const roles = await t.api().get('/roles').expect(200);
+      return roles.body.find((r: { name: string }) => r.name === name).id;
+    };
+
+    it('lists only members of the caller organization', async () => {
+      const members = await b.api().get('/organizations/members').expect(200);
+      expect(members.body).toHaveLength(1);
+      expect(members.body[0].email).toBe(`owner@${b.slug}.test`);
+    });
+
+    it('applies a role change on the next token refresh', async () => {
+      const email = `staff-${Date.now()}@${a.slug}.test`;
+      const user = await a
+        .api()
+        .post('/users')
+        .send({ email, firstName: 'Staff', lastName: 'Member', password: 'secret123' })
+        .expect(201);
+      await a
+        .api()
+        .post('/organizations/members')
+        .send({ userId: user.body.id, roleId: await roleId(a, 'admin') })
+        .expect(201);
+
+      const login = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email, password: 'secret123', organizationSlug: a.slug })
+        .expect(200);
+      await request(app.getHttpServer())
+        .get('/api/v1/organizations/members')
+        .set('Authorization', `Bearer ${login.body.accessToken}`)
+        .expect(200);
+
+      // Demote to a role without users.read
+      await a
+        .api()
+        .post('/roles/assign')
+        .send({ userId: user.body.id, roleId: await roleId(a, 'professional') })
+        .expect(204);
+
+      const refreshed = await request(app.getHttpServer())
+        .post('/api/v1/auth/refresh')
+        .send({ refreshToken: login.body.refreshToken })
+        .expect(200);
+      await request(app.getHttpServer())
+        .get('/api/v1/organizations/members')
+        .set('Authorization', `Bearer ${refreshed.body.accessToken}`)
+        .expect(403);
+    });
+
+    it('does not allow changing your own role', async () => {
+      const me = await a.api().get('/users/me').expect(200);
+      await a
+        .api()
+        .post('/roles/assign')
+        .send({ userId: me.body.id, roleId: await roleId(a, 'professional') })
+        .expect(400);
+    });
+  });
+
   describe('module gating', () => {
     it('returns 403 when the module is disabled for the organization', async () => {
       const prisma = app.get(PrismaService);

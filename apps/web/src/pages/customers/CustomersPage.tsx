@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import { Customer, Paginated } from '../../lib/types'
+import { Customer, Paginated } from '@dentalflow/types'
 import { useTerms } from '../../org/OrganizationContext'
 
 const PAGE_SIZE = 20

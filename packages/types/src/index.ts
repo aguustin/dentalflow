@@ -1,21 +1,13 @@
 /**
  * @dentalflow/types
  *
- * Shared TypeScript types, interfaces, and enums used across
- * web, mobile, and API packages. No runtime logic lives here.
- *
- * Organised by domain — add files under src/ as domains are built:
- *
- *   src/
- *     auth.types.ts
- *     appointments.types.ts
- *     patients.types.ts
- *     treatments.types.ts
- *     billing.types.ts
- *     staff.types.ts
- *     inventory.types.ts
- *     common.types.ts       ← pagination, error shapes, etc.
+ * API response types shared by the clients (web, mobile). Types only — no runtime code.
+ * The API defines its own DTOs (it compiles to CommonJS and can't import raw .ts packages);
+ * keep these in sync when an endpoint's response changes.
  */
 
-// Placeholder — replace with real domain types as they are defined.
-export type TODO = unknown
+export * from './common.types'
+export * from './organizations.types'
+export * from './customers.types'
+export * from './appointments.types'
+export * from './users.types'

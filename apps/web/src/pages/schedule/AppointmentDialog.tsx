@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import { Appointment, AppointmentStatus } from '../../lib/types'
+import { Appointment, AppointmentStatus } from '@dentalflow/types'
 import { fromInputs, toDateInput, toTimeInput } from '../../lib/dates'
 import { useTerms } from '../../org/OrganizationContext'
 import { CustomerPicker, PickedCustomer } from '../../components/CustomerPicker'
