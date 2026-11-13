@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 
 /** Menu items. Step 3 will filter them by the organization's enabled modules and terminology. */
 const NAV_ITEMS = [
@@ -8,6 +9,7 @@ const NAV_ITEMS = [
 ]
 
 export function AppLayout() {
+  const { logout } = useAuth()
   return (
     <div className="layout">
       <aside className="sidebar">
@@ -19,6 +21,9 @@ export function AppLayout() {
             </NavLink>
           ))}
         </nav>
+        <button className="link logout" onClick={() => void logout()}>
+          Cerrar sesión
+        </button>
       </aside>
       <main className="content">
         <Outlet />
