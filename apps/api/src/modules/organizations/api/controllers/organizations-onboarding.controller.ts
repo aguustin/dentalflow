@@ -53,6 +53,7 @@ export class OrganizationsOnboardingController {
       ownerPassword: body.ownerPassword,
       planName: body.planName,
       vertical: body.vertical,
+      timezone: body.timezone,
     });
     return OrganizationOnboardingResponse.from(result);
   }

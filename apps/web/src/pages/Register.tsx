@@ -19,6 +19,14 @@ function toSlug(value: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+function browserTimeZone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function Register() {
   const { status, login } = useAuth()
   const navigate = useNavigate()
@@ -60,7 +68,7 @@ export function Register() {
       await api('/organizations', {
         method: 'POST',
         anonymous: true,
-        body: { ...form, vertical },
+        body: { ...form, vertical, timezone: browserTimeZone() },
       })
       await login(form.ownerEmail, form.ownerPassword, form.slug)
       try {

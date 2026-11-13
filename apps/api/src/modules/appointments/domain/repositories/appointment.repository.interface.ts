@@ -2,6 +2,7 @@ import { AppointmentEntity } from '../entities/appointment.entity';
 
 export interface FindAppointmentsOptions {
   customerId?: string;
+  staffId?: string;
   status?: string;
   startAfter?: Date;
   startBefore?: Date;
@@ -14,6 +15,13 @@ export interface OverlapCheckRange {
   endTime: Date;
 }
 
+/** Any active appointment matching ANY of the given participants conflicts. */
+export interface OverlapParticipants {
+  customerId?: string;
+  staffId?: string;
+  resourceId?: string | null;
+}
+
 export interface IAppointmentRepository {
   findById(id: string, organizationId: string): Promise<AppointmentEntity | null>;
   findAll(
@@ -21,7 +29,7 @@ export interface IAppointmentRepository {
     options?: FindAppointmentsOptions,
   ): Promise<{ items: AppointmentEntity[]; total: number }>;
   findOverlapping(
-    customerId: string,
+    participants: OverlapParticipants,
     organizationId: string,
     range: OverlapCheckRange,
     excludeId?: string,

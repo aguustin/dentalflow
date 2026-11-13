@@ -39,6 +39,8 @@ export interface VerticalTemplate {
   terminology: {
     customer: Terminology;
     appointment: Terminology;
+    staff: Terminology;
+    resource: Terminology;
   };
   /** Extra fields stored in Customer.attributes */
   customerAttributes: AttributeField[];

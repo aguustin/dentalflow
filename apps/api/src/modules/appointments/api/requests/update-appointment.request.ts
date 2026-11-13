@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsUUID, IsDateString, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 
 // Status values that can be set via PUT (CANCELLED is handled by DELETE; SCHEDULED is auto on reschedule)
 enum UpdatableStatus {
@@ -9,6 +9,16 @@ enum UpdatableStatus {
 }
 
 export class UpdateAppointmentRequest {
+  @ApiPropertyOptional({ description: 'Reassign to another staff member' })
+  @IsOptional()
+  @IsUUID()
+  staffId?: string;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Change resource; null removes it' })
+  @IsOptional()
+  @IsUUID()
+  resourceId?: string | null;
+
   @ApiPropertyOptional({ example: 'Follow-up Check-up' })
   @IsOptional()
   @IsString()

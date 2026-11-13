@@ -5,7 +5,12 @@ import { AppointmentEntity } from '../../domain/entities/appointment.entity';
 import { AppointmentCreatedEvent } from '../../domain/events/appointment-created.event';
 import { IEventBus } from '../../../../shared/types/event-bus.interface';
 import { TOKENS } from '../../../../shared/injection-tokens';
-import { APPOINTMENT_REPOSITORY_TOKEN, CUSTOMER_EXISTENCE_CHECKER_TOKEN } from '../../appointments.tokens';
+import {
+  APPOINTMENT_REPOSITORY_TOKEN,
+  CUSTOMER_EXISTENCE_CHECKER_TOKEN,
+  STAFF_DIRECTORY_TOKEN,
+} from '../../appointments.tokens';
+import { IStaffDirectory } from '../services/staff-directory.interface';
 import { CreateAppointmentCommand, AppointmentDto, toAppointmentDto } from '../dtos/appointment.dto';
 import { AppointmentOverlapService } from '../services/appointment-overlap.service';
 import { ICustomerExistenceChecker } from '../services/customer-existence-checker.interface';
@@ -20,6 +25,8 @@ export class CreateAppointmentUseCase {
     @Inject(CUSTOMER_EXISTENCE_CHECKER_TOKEN)
     private readonly customerChecker: ICustomerExistenceChecker,
     private readonly overlapService: AppointmentOverlapService,
+    @Inject(STAFF_DIRECTORY_TOKEN)
+    private readonly staffDirectory: IStaffDirectory,
   ) {}
 
   async execute(command: CreateAppointmentCommand): Promise<AppointmentDto> {
@@ -33,6 +40,16 @@ export class CreateAppointmentUseCase {
       );
     }
 
+    if (!(await this.staffDirectory.isActiveStaff(command.staffId, command.organizationId))) {
+      throw new NotFoundException(`Staff member '${command.staffId}' not found in this organization`);
+    }
+    if (
+      command.resourceId &&
+      !(await this.staffDirectory.isActiveResource(command.resourceId, command.organizationId))
+    ) {
+      throw new NotFoundException(`Resource '${command.resourceId}' not found in this organization`);
+    }
+
     const startTime = new Date(command.startTime);
     const endTime = new Date(command.endTime);
 
@@ -41,7 +58,7 @@ export class CreateAppointmentUseCase {
     }
 
     await this.overlapService.assertNoOverlap(
-      command.customerId,
+      { customerId: command.customerId, staffId: command.staffId, resourceId: command.resourceId },
       command.organizationId,
       startTime,
       endTime,
@@ -53,6 +70,8 @@ export class CreateAppointmentUseCase {
         id: randomUUID(),
         organizationId: command.organizationId,
         customerId: command.customerId,
+        staffId: command.staffId,
+        resourceId: command.resourceId ?? null,
         title: command.title,
         description: command.description ?? null,
         startTime,

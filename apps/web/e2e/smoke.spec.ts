@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 /**
  * Main happy path of the dental vertical:
- * register a business → land on the agenda → create a patient → book an appointment.
+ * register → agenda → create a patient → create a professional with hours → book an appointment.
  * The only UI test of Phase 1 (see docs/ROADMAP.md, testing strategy).
  */
 test('register, create a patient and book an appointment', async ({ page }) => {
@@ -35,6 +35,17 @@ test('register, create a patient and book an appointment', async ({ page }) => {
   await page.getByRole('button', { name: 'Guardar' }).click()
   await expect(page.getByRole('link', { name: patient })).toBeVisible()
 
+  // ── Create a professional with Monday–Friday hours ─────────────────────────
+  await page.getByRole('link', { name: 'Profesionales' }).click()
+  await page.getByRole('link', { name: 'Nuevo profesional' }).click()
+  await page.getByLabel(/^Nombre/).fill('Dra. Smoke')
+  await page.getByRole('button', { name: 'Crear y cargar horario' }).click()
+  await expect(page.getByRole('heading', { name: 'Horario semanal' })).toBeVisible()
+  await page.getByRole('button', { name: '+ rango' }).first().click() // Lunes 09:00–13:00
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'copiar día anterior' }).nth(i).click()
+  await page.getByRole('button', { name: 'Guardar horario' }).click()
+  await expect(page.getByText('Horario guardado ✓')).toBeVisible()
+
   // ── Book appointment today at 10:00 (always inside the visible week) ──────
   await page.getByRole('link', { name: 'Agenda' }).click()
   await page.getByRole('button', { name: 'Nuevo turno', exact: true }).click()
@@ -50,4 +61,5 @@ test('register, create a patient and book an appointment', async ({ page }) => {
   const appointment = page.locator('.day.today .appt', { hasText: patient })
   await expect(appointment).toBeVisible()
   await expect(appointment).toContainText('Control anual')
+  await expect(appointment).toContainText('Dra. Smoke')
 })

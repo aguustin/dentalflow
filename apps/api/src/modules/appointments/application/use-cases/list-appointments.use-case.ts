@@ -1,6 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IAppointmentRepository } from '../../domain/repositories/appointment.repository.interface';
-import { APPOINTMENT_REPOSITORY_TOKEN, CUSTOMER_EXISTENCE_CHECKER_TOKEN } from '../../appointments.tokens';
+import {
+  APPOINTMENT_REPOSITORY_TOKEN,
+  CUSTOMER_EXISTENCE_CHECKER_TOKEN,
+  STAFF_DIRECTORY_TOKEN,
+} from '../../appointments.tokens';
+import { IStaffDirectory } from '../services/staff-directory.interface';
 import { ICustomerExistenceChecker } from '../services/customer-existence-checker.interface';
 import {
   ListAppointmentsFilters,
@@ -18,6 +23,8 @@ export class ListAppointmentsUseCase {
     private readonly appointmentRepository: IAppointmentRepository,
     @Inject(CUSTOMER_EXISTENCE_CHECKER_TOKEN)
     private readonly customerChecker: ICustomerExistenceChecker,
+    @Inject(STAFF_DIRECTORY_TOKEN)
+    private readonly staffDirectory: IStaffDirectory,
   ) {}
 
   async execute(
@@ -29,6 +36,7 @@ export class ListAppointmentsUseCase {
 
     const { items, total } = await this.appointmentRepository.findAll(organizationId, {
       customerId: filters?.customerId,
+      staffId: filters?.staffId,
       status: filters?.status,
       startAfter: filters?.startAfter,
       startBefore: filters?.startBefore,
@@ -36,13 +44,24 @@ export class ListAppointmentsUseCase {
       offset,
     });
 
-    const names = await this.customerChecker.findNames(
-      items.map((a) => a.customerId),
-      organizationId,
-    );
+    const [names, staff] = await Promise.all([
+      this.customerChecker.findNames(
+        items.map((a) => a.customerId),
+        organizationId,
+      ),
+      this.staffDirectory.findStaffInfo(
+        items.map((a) => a.staffId),
+        organizationId,
+      ),
+    ]);
 
     return {
-      items: items.map((a) => ({ ...toAppointmentDto(a), customerName: names.get(a.customerId) })),
+      items: items.map((a) => ({
+        ...toAppointmentDto(a),
+        customerName: names.get(a.customerId),
+        staffName: staff.get(a.staffId)?.name,
+        staffColor: staff.get(a.staffId)?.color,
+      })),
       total,
       limit,
       offset,

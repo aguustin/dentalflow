@@ -1,4 +1,5 @@
 import { IsEmail, IsIn, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsTimeZone } from '../../../../shared/validators/is-time-zone.validator';
 import { VERTICAL_KEYS } from '../../../../shared/verticals';
 import { PLAN_NAMES } from '../../../billing/domain/entities/plan.entity';
 
@@ -35,4 +36,8 @@ export class CreateOrganizationRequest {
   @IsString()
   @IsIn(VERTICAL_KEYS)
   vertical?: string;
+
+  @IsOptional()
+  @IsTimeZone()
+  timezone?: string;
 }

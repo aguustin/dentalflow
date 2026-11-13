@@ -1,8 +1,8 @@
 import { FormEvent, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Appointment, AppointmentStatus, Availability, Resource, StaffMember } from '@dentalflow/types'
 import { api } from '../../lib/api'
-import { Appointment, AppointmentStatus } from '@dentalflow/types'
-import { fromInputs, toDateInput, toTimeInput } from '../../lib/dates'
+import { formatTime, fromInputs, toDateInput, toTimeInput } from '../../lib/dates'
 import { useTerms } from '../../org/OrganizationContext'
 import { CustomerPicker, PickedCustomer } from '../../components/CustomerPicker'
 
@@ -14,10 +14,12 @@ export const STATUS_LABELS: Record<AppointmentStatus, string> = {
   NO_SHOW: 'Ausente',
 }
 
+type Action = 'CONFIRMED' | 'COMPLETED' | 'NO_SHOW' | 'CANCEL'
+
 /** Mirrors the API's allowed transitions, only to decide which buttons to show. */
-const ACTIONS: Record<AppointmentStatus, ('CONFIRMED' | 'COMPLETED' | 'NO_SHOW' | 'CANCEL')[]> = {
+const ACTIONS: Record<AppointmentStatus, Action[]> = {
   SCHEDULED: ['CONFIRMED', 'NO_SHOW', 'CANCEL'],
-  CONFIRMED: ['COMPLETED'],
+  CONFIRMED: ['COMPLETED', 'NO_SHOW', 'CANCEL'],
   COMPLETED: [],
   CANCELLED: [],
   NO_SHOW: [],
@@ -25,28 +27,52 @@ const ACTIONS: Record<AppointmentStatus, ('CONFIRMED' | 'COMPLETED' | 'NO_SHOW' 
 
 const DURATIONS = [15, 30, 45, 60, 90, 120]
 
+/** Active staff, shared cache with the staff page and the agenda filter. */
+export function useActiveStaff() {
+  return useQuery({
+    queryKey: ['staff', { showInactive: false }],
+    queryFn: () => api<StaffMember[]>('/staff?includeInactive=false'),
+  })
+}
+
 interface Props {
-  /** Existing appointment to edit, or a start date for a new one */
+  /** Existing appointment to edit, or defaults for a new one */
   appointment?: Appointment
   defaultStart?: Date
+  defaultStaffId?: string
   onClose: () => void
 }
 
-export function AppointmentDialog({ appointment, defaultStart, onClose }: Props) {
+export function AppointmentDialog({ appointment, defaultStart, defaultStaffId, onClose }: Props) {
   const terms = useTerms()
   const queryClient = useQueryClient()
   const isNew = !appointment
   const readOnly = !!appointment && ACTIONS[appointment.status].length === 0
 
+  const staff = useActiveStaff()
+  const resources = useQuery({ queryKey: ['resources', 'active'], queryFn: () => api<Resource[]>('/resources') })
+
   const start = appointment ? new Date(appointment.startTime) : (defaultStart ?? new Date())
   const [customer, setCustomer] = useState<PickedCustomer | null>(
     appointment ? { id: appointment.customerId, name: appointment.customerName ?? '—' } : null,
   )
+  const [staffId, setStaffId] = useState(appointment?.staffId ?? defaultStaffId ?? '')
+  const [resourceId, setResourceId] = useState(appointment?.resourceId ?? '')
   const [date, setDate] = useState(toDateInput(start))
   const [time, setTime] = useState(toTimeInput(start))
   const [duration, setDuration] = useState(appointment?.durationMinutes ?? 30)
   const [title, setTitle] = useState(appointment?.title ?? '')
   const [description, setDescription] = useState(appointment?.description ?? '')
+
+  // Default to the first active staff member once loaded
+  const effectiveStaffId = staffId || staff.data?.[0]?.id || ''
+
+  const availability = useQuery({
+    queryKey: ['appointments', 'availability', effectiveStaffId, date, duration],
+    queryFn: () =>
+      api<Availability>(`/appointments/availability?staffId=${effectiveStaffId}&date=${date}&duration=${duration}`),
+    enabled: !readOnly && !!effectiveStaffId && !!date,
+  })
 
   const done = () => {
     void queryClient.invalidateQueries({ queryKey: ['appointments'] })
@@ -58,20 +84,27 @@ export function AppointmentDialog({ appointment, defaultStart, onClose }: Props)
       const startTime = fromInputs(date, time)
       const endTime = new Date(startTime.getTime() + duration * 60_000)
       const body = {
+        staffId: effectiveStaffId,
         title: title.trim(),
         description: description.trim() || (isNew ? undefined : null),
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
       }
       return isNew
-        ? api('/appointments', { method: 'POST', body: { ...body, customerId: customer!.id } })
-        : api(`/appointments/${appointment.id}`, { method: 'PUT', body })
+        ? api('/appointments', {
+            method: 'POST',
+            body: { ...body, customerId: customer!.id, resourceId: resourceId || undefined },
+          })
+        : api(`/appointments/${appointment.id}`, {
+            method: 'PUT',
+            body: { ...body, resourceId: resourceId || null },
+          })
     },
     onSuccess: done,
   })
 
   const transition = useMutation({
-    mutationFn: (action: (typeof ACTIONS)[AppointmentStatus][number]) =>
+    mutationFn: (action: Action) =>
       action === 'CANCEL'
         ? api(`/appointments/${appointment!.id}`, { method: 'DELETE' })
         : api(`/appointments/${appointment!.id}`, { method: 'PUT', body: { status: action } }),
@@ -80,17 +113,18 @@ export function AppointmentDialog({ appointment, defaultStart, onClose }: Props)
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!customer) return
+    if (!customer || !effectiveStaffId) return
     save.mutate()
   }
 
-  function runAction(action: (typeof ACTIONS)[AppointmentStatus][number]) {
+  function runAction(action: Action) {
     if (action === 'CANCEL' && !window.confirm(`¿Cancelar este ${terms.appointment.singular.toLowerCase()}?`)) return
     transition.mutate(action)
   }
 
   const error = save.error ?? transition.error
   const busy = save.isPending || transition.isPending
+  const noStaff = staff.data?.length === 0
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -99,6 +133,12 @@ export function AppointmentDialog({ appointment, defaultStart, onClose }: Props)
           <h1>{isNew ? `Nuevo ${terms.appointment.singular.toLowerCase()}` : terms.appointment.singular}</h1>
           {appointment && <span className={`badge ${appointment.status}`}>{STATUS_LABELS[appointment.status]}</span>}
         </div>
+
+        {noStaff && (
+          <p className="error">
+            Primero cargá al menos un {terms.staff.singular.toLowerCase()} en la sección {terms.staff.plural}.
+          </p>
+        )}
 
         {isNew ? (
           <CustomerPicker label={terms.customer.singular} value={customer} onChange={setCustomer} />
@@ -110,6 +150,35 @@ export function AppointmentDialog({ appointment, defaultStart, onClose }: Props)
         )}
 
         <fieldset disabled={readOnly} className="plain">
+          <div className="row">
+            <label>
+              {terms.staff.singular} *
+              <select value={effectiveStaffId} onChange={(e) => setStaffId(e.target.value)} required>
+                {staff.data?.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+                {/* Keep the current value visible if that staff member was deactivated */}
+                {appointment && !staff.data?.some((m) => m.id === appointment.staffId) && (
+                  <option value={appointment.staffId}>{appointment.staffName ?? '—'}</option>
+                )}
+              </select>
+            </label>
+            {!!resources.data?.length && (
+              <label>
+                {terms.resource.singular}
+                <select value={resourceId} onChange={(e) => setResourceId(e.target.value)}>
+                  <option value="">—</option>
+                  {resources.data.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
           <label>
             Motivo *
             <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
@@ -134,6 +203,39 @@ export function AppointmentDialog({ appointment, defaultStart, onClose }: Props)
               </select>
             </label>
           </div>
+
+          {!readOnly && effectiveStaffId && (
+            <div>
+              <span className="small muted">Horarios disponibles</span>
+              <div className="slots">
+                {availability.isPending ? (
+                  <span className="muted small">Buscando…</span>
+                ) : availability.error ? (
+                  <span className="error small">{availability.error.message}</span>
+                ) : availability.data.slots.length === 0 ? (
+                  <span className="muted small">
+                    Sin horarios libres ese día (revisá el horario del {terms.staff.singular.toLowerCase()}). Podés
+                    elegir una hora manualmente.
+                  </span>
+                ) : (
+                  availability.data.slots.map((s) => {
+                    const t = toTimeInput(new Date(s.startTime))
+                    return (
+                      <button
+                        type="button"
+                        key={s.startTime}
+                        className={t === time ? 'slot selected' : 'slot'}
+                        onClick={() => setTime(t)}
+                      >
+                        {formatTime(new Date(s.startTime))}
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+          )}
+
           <label>
             Notas
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} rows={3} />
@@ -144,7 +246,7 @@ export function AppointmentDialog({ appointment, defaultStart, onClose }: Props)
 
         <div className="actions">
           {!readOnly && (
-            <button type="submit" disabled={busy || !customer}>
+            <button type="submit" disabled={busy || !customer || !effectiveStaffId}>
               {save.isPending ? 'Guardando…' : 'Guardar'}
             </button>
           )}
@@ -157,7 +259,7 @@ export function AppointmentDialog({ appointment, defaultStart, onClose }: Props)
                 disabled={busy}
                 onClick={() => runAction(action)}
               >
-                {action === 'CANCEL' ? 'Cancelar turno' : `Marcar ${STATUS_LABELS[action].toLowerCase()}`}
+                {action === 'CANCEL' ? `Cancelar ${terms.appointment.singular.toLowerCase()}` : `Marcar ${STATUS_LABELS[action].toLowerCase()}`}
               </button>
             ))}
           <button type="button" className="link" onClick={onClose}>

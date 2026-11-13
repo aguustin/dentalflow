@@ -30,6 +30,9 @@ const CORE_PERMISSIONS = [
   { resource: 'appointments', action: 'read' },
   { resource: 'appointments', action: 'update' },
   { resource: 'appointments', action: 'delete' },
+  { resource: 'staff', action: 'create' },
+  { resource: 'staff', action: 'read' },
+  { resource: 'staff', action: 'update' },
   { resource: 'billing', action: 'create' },
   { resource: 'billing', action: 'read' },
   { resource: 'billing', action: 'update' },
@@ -82,7 +85,7 @@ async function main() {
     create: { name: 'viewer', organizationId: org.id },
     update: {},
   });
-  const readPermKeys = ['users.read', 'customers.read', 'appointments.read', 'permissions.read'];
+  const readPermKeys = ['users.read', 'customers.read', 'appointments.read', 'permissions.read', 'staff.read'];
   for (const key of readPermKeys) {
     const permId = createdPermissions[key];
     if (permId) {

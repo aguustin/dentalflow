@@ -11,7 +11,8 @@ import { AppointmentStatusEnum } from '../../domain/value-objects/appointment-st
 import { AppointmentRescheduledEvent } from '../../domain/events/appointment-rescheduled.event';
 import { IEventBus } from '../../../../shared/types/event-bus.interface';
 import { TOKENS } from '../../../../shared/injection-tokens';
-import { APPOINTMENT_REPOSITORY_TOKEN } from '../../appointments.tokens';
+import { APPOINTMENT_REPOSITORY_TOKEN, STAFF_DIRECTORY_TOKEN } from '../../appointments.tokens';
+import { IStaffDirectory } from '../services/staff-directory.interface';
 import { RescheduleAppointmentCommand, AppointmentDto, toAppointmentDto } from '../dtos/appointment.dto';
 import { AppointmentOverlapService } from '../services/appointment-overlap.service';
 import { CompleteAppointmentUseCase } from './complete-appointment.use-case';
@@ -31,6 +32,8 @@ export class RescheduleAppointmentUseCase {
     private readonly eventBus: IEventBus,
     private readonly overlapService: AppointmentOverlapService,
     private readonly completeAppointment: CompleteAppointmentUseCase,
+    @Inject(STAFF_DIRECTORY_TOKEN)
+    private readonly staffDirectory: IStaffDirectory,
   ) {}
 
   async execute(
@@ -72,16 +75,45 @@ export class RescheduleAppointmentUseCase {
         throw new BadRequestException(err instanceof Error ? err.message : String(err));
       }
 
+      try {
+        updated = updated.reschedule(newTimeRange);
+      } catch (err: unknown) {
+        throw new BadRequestException(err instanceof Error ? err.message : String(err));
+      }
+      timeChanged = true;
+    }
+
+    // 1b. Reassign staff / resource
+    const staffChanged = command.staffId !== undefined && command.staffId !== appointment.staffId;
+    const resourceChanged =
+      command.resourceId !== undefined && command.resourceId !== appointment.resourceId;
+    if (staffChanged || resourceChanged) {
+      if (staffChanged && !(await this.staffDirectory.isActiveStaff(command.staffId!, organizationId))) {
+        throw new NotFoundException(`Staff member '${command.staffId}' not found in this organization`);
+      }
+      if (
+        resourceChanged &&
+        command.resourceId &&
+        !(await this.staffDirectory.isActiveResource(command.resourceId, organizationId))
+      ) {
+        throw new NotFoundException(`Resource '${command.resourceId}' not found in this organization`);
+      }
+      try {
+        updated = updated.reassign({ staffId: command.staffId, resourceId: command.resourceId });
+      } catch (err: unknown) {
+        throw new BadRequestException(err instanceof Error ? err.message : String(err));
+      }
+    }
+
+    // One overlap check with the final time + participants
+    if (timeChanged || staffChanged || resourceChanged) {
       await this.overlapService.assertNoOverlap(
-        appointment.customerId,
+        { customerId: updated.customerId, staffId: updated.staffId, resourceId: updated.resourceId },
         organizationId,
-        newStart,
-        newEnd,
+        updated.timeRange.startTime,
+        updated.timeRange.endTime,
         id,
       );
-
-      updated = updated.reschedule(newTimeRange);
-      timeChanged = true;
     }
 
     // 2. Title / description update

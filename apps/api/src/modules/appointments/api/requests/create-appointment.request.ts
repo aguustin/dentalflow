@@ -7,6 +7,15 @@ export class CreateAppointmentRequest {
   @IsNotEmpty()
   customerId: string;
 
+  @ApiProperty({ description: 'Staff member who attends the appointment' })
+  @IsUUID()
+  staffId: string;
+
+  @ApiPropertyOptional({ description: 'Optional bookable resource (chair, room…)' })
+  @IsOptional()
+  @IsUUID()
+  resourceId?: string;
+
   @ApiProperty({ example: 'Annual Check-up' })
   @IsString()
   @IsNotEmpty()

@@ -64,6 +64,7 @@ export class CurrentOrganizationResponse {
   slug: string;
   vertical: CurrentOrganizationDto['vertical'];
   enabledModules: string[];
+  timezone: string;
   isActive: boolean;
   createdAt: string;
   subscription: {
@@ -79,6 +80,7 @@ export class CurrentOrganizationResponse {
     res.slug = dto.slug;
     res.vertical = dto.vertical;
     res.enabledModules = dto.enabledModules;
+    res.timezone = dto.timezone;
     res.isActive = dto.isActive;
     res.createdAt = dto.createdAt.toISOString();
     res.subscription = dto.subscription

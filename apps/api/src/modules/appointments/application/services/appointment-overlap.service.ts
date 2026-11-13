@@ -1,7 +1,14 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
-import { IAppointmentRepository } from '../../domain/repositories/appointment.repository.interface';
+import {
+  IAppointmentRepository,
+  OverlapParticipants,
+} from '../../domain/repositories/appointment.repository.interface';
 import { APPOINTMENT_REPOSITORY_TOKEN } from '../../appointments.tokens';
 
+/**
+ * App-level double-booking check with a friendly message. The same rule for staff and
+ * resources is also enforced by DB exclusion constraints (safe under concurrency).
+ */
 @Injectable()
 export class AppointmentOverlapService {
   constructor(
@@ -10,26 +17,32 @@ export class AppointmentOverlapService {
   ) {}
 
   async assertNoOverlap(
-    customerId: string,
+    participants: Required<Pick<OverlapParticipants, 'customerId' | 'staffId'>> &
+      Pick<OverlapParticipants, 'resourceId'>,
     organizationId: string,
     startTime: Date,
     endTime: Date,
     excludeAppointmentId?: string,
   ): Promise<void> {
     const overlapping = await this.appointmentRepository.findOverlapping(
-      customerId,
+      participants,
       organizationId,
       { startTime, endTime },
       excludeAppointmentId,
     );
+    if (overlapping.length === 0) return;
 
-    if (overlapping.length > 0) {
-      const conflict = overlapping[0];
-      throw new ConflictException(
-        `Customer already has an appointment from ` +
-          `${conflict.timeRange.startTime.toISOString()} to ` +
-          `${conflict.timeRange.endTime.toISOString()}`,
-      );
-    }
+    const conflict = overlapping[0];
+    const who =
+      conflict.staffId === participants.staffId
+        ? 'The staff member'
+        : participants.resourceId && conflict.resourceId === participants.resourceId
+          ? 'The resource'
+          : 'The customer';
+    throw new ConflictException(
+      `${who} already has an appointment from ` +
+        `${conflict.timeRange.startTime.toISOString()} to ` +
+        `${conflict.timeRange.endTime.toISOString()}`,
+    );
   }
 }

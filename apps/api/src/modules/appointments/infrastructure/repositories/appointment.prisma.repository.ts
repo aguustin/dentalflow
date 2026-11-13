@@ -5,9 +5,11 @@ import {
   IAppointmentRepository,
   FindAppointmentsOptions,
   OverlapCheckRange,
+  OverlapParticipants,
 } from '../../domain/repositories/appointment.repository.interface';
 import { AppointmentEntity } from '../../domain/entities/appointment.entity';
 import { AppointmentMapper } from '../mappers/appointment.mapper';
+import { DomainError } from '../../../../shared/contracts/errors/domain.error';
 
 // Only active (non-terminal) appointments block a time slot
 const ACTIVE_STATUSES: PrismaStatus[] = [PrismaStatus.SCHEDULED, PrismaStatus.CONFIRMED];
@@ -31,6 +33,7 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
     const where: Prisma.AppointmentWhereInput = {
       organizationId,
       ...(options?.customerId ? { customerId: options.customerId } : {}),
+      ...(options?.staffId ? { staffId: options.staffId } : {}),
       ...(options?.status ? { status: options.status as PrismaStatus } : {}),
       ...(options?.startAfter || options?.startBefore
         ? {
@@ -56,15 +59,21 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
   }
 
   async findOverlapping(
-    customerId: string,
+    participants: OverlapParticipants,
     organizationId: string,
     range: OverlapCheckRange,
     excludeId?: string,
   ): Promise<AppointmentEntity[]> {
+    const or: Prisma.AppointmentWhereInput[] = [];
+    if (participants.customerId) or.push({ customerId: participants.customerId });
+    if (participants.staffId) or.push({ staffId: participants.staffId });
+    if (participants.resourceId) or.push({ resourceId: participants.resourceId });
+    if (or.length === 0) return [];
+
     // Overlap: existing.startTime < range.endTime AND existing.endTime > range.startTime
     const rows = await this.prisma.appointment.findMany({
       where: {
-        customerId,
+        OR: or,
         organizationId,
         status: { in: ACTIVE_STATUSES },
         startTime: { lt: range.endTime },
@@ -77,33 +86,56 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
   }
 
   async create(entity: AppointmentEntity): Promise<AppointmentEntity> {
-    const row = await this.prisma.appointment.create({
-      data: {
-        id: entity.id,
-        organizationId: entity.organizationId,
-        customerId: entity.customerId,
-        title: entity.title,
-        description: entity.description,
-        startTime: entity.timeRange.startTime,
-        endTime: entity.timeRange.endTime,
-        status: entity.status.value as PrismaStatus,
-      },
-    });
+    const row = await this.prisma.appointment
+      .create({
+        data: {
+          id: entity.id,
+          organizationId: entity.organizationId,
+          customerId: entity.customerId,
+          staffId: entity.staffId,
+          resourceId: entity.resourceId,
+          title: entity.title,
+          description: entity.description,
+          startTime: entity.timeRange.startTime,
+          endTime: entity.timeRange.endTime,
+          status: entity.status.value as PrismaStatus,
+        },
+      })
+      .catch(rethrowDoubleBooking);
     return AppointmentMapper.toDomain(row);
   }
 
   async save(entity: AppointmentEntity): Promise<AppointmentEntity> {
-    const row = await this.prisma.appointment.update({
-      where: { id: entity.id },
-      data: {
-        title: entity.title,
-        description: entity.description,
-        startTime: entity.timeRange.startTime,
-        endTime: entity.timeRange.endTime,
-        status: entity.status.value as PrismaStatus,
-        updatedAt: entity.updatedAt,
-      },
-    });
+    const row = await this.prisma.appointment
+      .update({
+        where: { id: entity.id },
+        data: {
+          staffId: entity.staffId,
+          resourceId: entity.resourceId,
+          title: entity.title,
+          description: entity.description,
+          startTime: entity.timeRange.startTime,
+          endTime: entity.timeRange.endTime,
+          status: entity.status.value as PrismaStatus,
+          updatedAt: entity.updatedAt,
+        },
+      })
+      .catch(rethrowDoubleBooking);
     return AppointmentMapper.toDomain(row);
   }
+}
+
+/**
+ * The DB exclusion constraints (appointments_staff_no_overlap / _resource_no_overlap)
+ * reject double bookings that slip past the app-level check (concurrent requests).
+ * Postgres reports them as SQLSTATE 23P01.
+ */
+function rethrowDoubleBooking(err: unknown): never {
+  const message = err instanceof Error ? err.message : String(err);
+  if (message.includes('23P01') || message.includes('_no_overlap')) {
+    throw new DomainError('CONFLICT', 'The time slot was just booked by someone else', {
+      reason: 'double_booking',
+    });
+  }
+  throw err;
 }

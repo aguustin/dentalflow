@@ -6,6 +6,12 @@ export interface AppointmentDto {
   customerId: string;
   /** Only present in listings */
   customerName?: string;
+  staffId: string;
+  /** Only present in listings */
+  staffName?: string;
+  /** Only present in listings */
+  staffColor?: string;
+  resourceId: string | null;
   title: string;
   description: string | null;
   startTime: Date;
@@ -19,6 +25,8 @@ export interface AppointmentDto {
 export interface CreateAppointmentCommand {
   organizationId: string;
   customerId: string;
+  staffId: string;
+  resourceId?: string | null;
   title: string;
   description?: string | null;
   startTime: Date;
@@ -26,6 +34,9 @@ export interface CreateAppointmentCommand {
 }
 
 export interface RescheduleAppointmentCommand {
+  staffId?: string;
+  /** null removes the resource */
+  resourceId?: string | null;
   title?: string;
   description?: string | null;
   startTime?: Date;
@@ -35,6 +46,7 @@ export interface RescheduleAppointmentCommand {
 
 export interface ListAppointmentsFilters {
   customerId?: string;
+  staffId?: string;
   status?: string;
   startAfter?: Date;
   startBefore?: Date;
@@ -54,6 +66,8 @@ export function toAppointmentDto(entity: AppointmentEntity): AppointmentDto {
     id: entity.id,
     organizationId: entity.organizationId,
     customerId: entity.customerId,
+    staffId: entity.staffId,
+    resourceId: entity.resourceId,
     title: entity.title,
     description: entity.description,
     startTime: entity.timeRange.startTime,

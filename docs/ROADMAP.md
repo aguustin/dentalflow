@@ -109,8 +109,14 @@ Sin interfaz el producto no se puede probar con usuarios reales.
 
 ---
 
-### Fase 2 — Staff y agenda real
+### Fase 2 — Staff y agenda real ✅ *(completada 2026-11-13)*
 Hoy los turnos no tienen profesional asignado. Para rubros de servicios, lo importante es *quién* atiende y *dónde*.
+
+> **Resultado:** profesionales (con o sin usuario del sistema), horario semanal, ausencias, recursos, zona horaria
+> por organización, disponibilidad cada 15 min y doble reserva bloqueada en la base con exclusion constraints
+> (`appointments_staff_no_overlap` / `_resource_no_overlap`). Los turnos confirmados ahora se pueden cancelar o
+> marcar ausentes. Profesionales y recursos no se borran: se desactivan. La agenda web asume que el navegador
+> está en la misma zona horaria que la organización.
 
 | Tarea | Cómo |
 |---|---|

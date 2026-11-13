@@ -39,6 +39,7 @@ function Shell() {
               {moduleLabels[m]}
             </NavLink>
           ))}
+          {org.enabledModules.includes('scheduling') && <NavLink to="/staff">{terms.staff.plural}</NavLink>}
           <NavLink to="/users">Usuarios</NavLink>
         </nav>
         <button className="link logout" onClick={() => void logout()}>

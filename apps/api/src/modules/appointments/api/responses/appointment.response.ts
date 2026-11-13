@@ -14,6 +14,18 @@ export class AppointmentResponse {
   customerName?: string;
 
   @ApiProperty()
+  staffId: string;
+
+  @ApiPropertyOptional({ description: 'Only in listings' })
+  staffName?: string;
+
+  @ApiPropertyOptional({ description: 'Only in listings' })
+  staffColor?: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  resourceId: string | null;
+
+  @ApiProperty()
   title: string;
 
   @ApiPropertyOptional({ nullable: true })

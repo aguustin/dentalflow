@@ -4,10 +4,10 @@ import { api } from '../../lib/api'
 import { Appointment, Paginated } from '@dentalflow/types'
 import { addDays, formatDay, formatTime, sameDay, startOfWeek } from '../../lib/dates'
 import { useTerms } from '../../org/OrganizationContext'
-import { AppointmentDialog, STATUS_LABELS } from './AppointmentDialog'
+import { AppointmentDialog, STATUS_LABELS, useActiveStaff } from './AppointmentDialog'
 
 /** Loads every appointment starting in [from, to), following pagination (API max page = 100). */
-async function fetchRange(from: Date, to: Date): Promise<Appointment[]> {
+async function fetchRange(from: Date, to: Date, staffId: string): Promise<Appointment[]> {
   const all: Appointment[] = []
   for (let offset = 0; ; offset += 100) {
     const params = new URLSearchParams({
@@ -16,6 +16,7 @@ async function fetchRange(from: Date, to: Date): Promise<Appointment[]> {
       limit: '100',
       offset: String(offset),
     })
+    if (staffId) params.set('staffId', staffId)
     const page = await api<Paginated<Appointment>>(`/appointments?${params}`)
     all.push(...page.items)
     if (all.length >= page.total || page.items.length === 0) return all
@@ -24,18 +25,39 @@ async function fetchRange(from: Date, to: Date): Promise<Appointment[]> {
 
 type DialogState = { appointment: Appointment } | { defaultStart: Date } | null
 
+const STAFF_FILTER_KEY = 'df.agendaStaff'
+
 export function SchedulePage() {
   const terms = useTerms()
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [showCancelled, setShowCancelled] = useState(false)
   const [dialog, setDialog] = useState<DialogState>(null)
+  // Per-browser convenience: remember the selected professional
+  const [staffFilter, setStaffFilterState] = useState(() => {
+    try {
+      return localStorage.getItem(STAFF_FILTER_KEY) ?? ''
+    } catch {
+      return ''
+    }
+  })
+  const setStaffFilter = (id: string) => {
+    setStaffFilterState(id)
+    try {
+      localStorage.setItem(STAFF_FILTER_KEY, id)
+    } catch {
+      /* ignore */
+    }
+  }
+  const staff = useActiveStaff()
+  // Ignore a remembered filter that no longer exists
+  const activeFilter = staff.data?.some((m) => m.id === staffFilter) ? staffFilter : ''
   const weekEnd = addDays(weekStart, 7)
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const today = new Date()
 
   const { data, error, isPending } = useQuery({
-    queryKey: ['appointments', 'week', weekStart.toISOString()],
-    queryFn: () => fetchRange(weekStart, weekEnd),
+    queryKey: ['appointments', 'week', weekStart.toISOString(), activeFilter],
+    queryFn: () => fetchRange(weekStart, weekEnd, activeFilter),
   })
 
   const byDay = useMemo(() => {
@@ -78,6 +100,17 @@ export function SchedulePage() {
             {formatDay(weekStart)} – {formatDay(addDays(weekEnd, -1))}
           </strong>
         </div>
+        <label className="inline">
+          {terms.staff.singular}
+          <select value={activeFilter} onChange={(e) => setStaffFilter(e.target.value)}>
+            <option value="">Todos</option>
+            {staff.data?.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="checkbox">
           <input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} />
           Mostrar cancelados
@@ -100,12 +133,18 @@ export function SchedulePage() {
               </div>
               {byDay[i].length === 0 && <span className="muted small">Sin {terms.appointment.plural.toLowerCase()}</span>}
               {byDay[i].map((a) => (
-                <button key={a.id} className={`appt ${a.status}`} onClick={() => setDialog({ appointment: a })}>
+                <button
+                  key={a.id}
+                  className={`appt ${a.status}`}
+                  style={a.staffColor ? { borderLeftColor: a.staffColor } : undefined}
+                  onClick={() => setDialog({ appointment: a })}
+                >
                   <span className="small">
                     {formatTime(new Date(a.startTime))}–{formatTime(new Date(a.endTime))}
                   </span>
                   <strong>{a.customerName ?? '—'}</strong>
                   <span className="small">{a.title}</span>
+                  {!activeFilter && a.staffName && <span className="small muted">{a.staffName}</span>}
                   {a.status !== 'SCHEDULED' && <span className="small">{STATUS_LABELS[a.status]}</span>}
                 </button>
               ))}
@@ -119,6 +158,7 @@ export function SchedulePage() {
           key={'appointment' in dialog ? dialog.appointment.id : 'new'}
           appointment={'appointment' in dialog ? dialog.appointment : undefined}
           defaultStart={'defaultStart' in dialog ? dialog.defaultStart : undefined}
+          defaultStaffId={activeFilter || undefined}
           onClose={() => setDialog(null)}
         />
       )}

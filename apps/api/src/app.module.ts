@@ -18,6 +18,7 @@ import { RolesModule } from './modules/core/roles/roles.module';
 import { PermissionsModule } from './modules/core/permissions/permissions.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { StaffModule } from './modules/staff/staff.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { OrganizationOnboardingModule } from './modules/organizations/organizations.module';
 
@@ -58,6 +59,7 @@ import { TenantResolutionMiddleware } from './shared/middleware/tenant-resolutio
     PermissionsModule,
     CustomersModule,
     AppointmentsModule,
+    StaffModule,
     BillingModule,
   ],
   providers: [

@@ -16,6 +16,8 @@ export interface OnboardingCommand {
   planName?: string;
   /** Business vertical key. Defaults to DEFAULT_VERTICAL when omitted */
   vertical?: string;
+  /** IANA time zone (e.g. from the browser). Defaults to America/Argentina/Buenos_Aires */
+  timezone?: string;
 }
 
 // ─── Onboarding result ─────────────────────────────────────────────────────────
@@ -58,6 +60,7 @@ export interface CurrentOrganizationDto {
   /** Full vertical template (modules, terminology, attribute schema) for clients */
   vertical: PublicVerticalDto;
   enabledModules: string[];
+  timezone: string;
   isActive: boolean;
   createdAt: Date;
   subscription: {

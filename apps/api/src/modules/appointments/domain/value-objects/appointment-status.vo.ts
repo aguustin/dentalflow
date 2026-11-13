@@ -13,7 +13,12 @@ const ALLOWED_TRANSITIONS: Record<AppointmentStatusEnum, AppointmentStatusEnum[]
     AppointmentStatusEnum.CANCELLED,
     AppointmentStatusEnum.NO_SHOW,
   ],
-  [AppointmentStatusEnum.CONFIRMED]: [AppointmentStatusEnum.COMPLETED],
+  // A confirmed patient can still cancel or not show up
+  [AppointmentStatusEnum.CONFIRMED]: [
+    AppointmentStatusEnum.COMPLETED,
+    AppointmentStatusEnum.CANCELLED,
+    AppointmentStatusEnum.NO_SHOW,
+  ],
   [AppointmentStatusEnum.COMPLETED]: [],
   [AppointmentStatusEnum.CANCELLED]: [],
   [AppointmentStatusEnum.NO_SHOW]: [],

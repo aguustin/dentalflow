@@ -29,6 +29,7 @@ export class GetCurrentOrganizationUseCase {
       slug: org.slug,
       vertical: toPublicVertical(org.vertical),
       enabledModules: org.enabledModules,
+      timezone: org.timezone,
       isActive: org.isActive,
       createdAt: org.createdAt,
       subscription: subscription

@@ -9,6 +9,8 @@ import { CustomersPage } from './pages/customers/CustomersPage'
 import { CustomerFormPage } from './pages/customers/CustomerFormPage'
 import { SchedulePage } from './pages/schedule/SchedulePage'
 import { UsersPage } from './pages/users/UsersPage'
+import { StaffPage } from './pages/staff/StaffPage'
+import { StaffFormPage } from './pages/staff/StaffFormPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
@@ -51,6 +53,30 @@ export const router = createBrowserRouter([
         element: (
           <ModuleRoute module="scheduling">
             <SchedulePage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'staff',
+        element: (
+          <ModuleRoute module="scheduling">
+            <StaffPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'staff/new',
+        element: (
+          <ModuleRoute module="scheduling">
+            <StaffFormPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'staff/:id',
+        element: (
+          <ModuleRoute module="scheduling">
+            <StaffFormPage key="edit" />
           </ModuleRoute>
         ),
       },

@@ -23,12 +23,27 @@ describe('Tenant isolation (e2e)', () => {
 
     const customer = await a.api().post('/customers').send({ name: 'Customer A' }).expect(201);
     ids.customer = customer.body.id;
+    ids.staff = (await a.api().post('/staff').send({ name: 'Staff A' }).expect(201)).body.id;
+    ids.resource = (await a.api().post('/resources').send({ name: 'Chair A' }).expect(201)).body.id;
+    ids.timeOff = (
+      await a
+        .api()
+        .post(`/staff/${ids.staff}/time-off`)
+        .send({ startTime: '2030-05-01T00:00:00.000Z', endTime: '2030-05-02T00:00:00.000Z' })
+        .expect(201)
+    ).body.id;
+
+    // Tenant B's own staff/customer, to prove that only the foreign reference is rejected
+    ids.staffB = (await b.api().post('/staff').send({ name: 'Staff B' }).expect(201)).body.id;
+    ids.customerB = (await b.api().post('/customers').send({ name: 'Customer B' }).expect(201)).body.id;
 
     const appointment = await a
       .api()
       .post('/appointments')
       .send({
         customerId: ids.customer,
+        staffId: ids.staff,
+        resourceId: ids.resource,
         title: 'Visit',
         startTime: '2030-01-10T10:00:00.000Z',
         endTime: '2030-01-10T11:00:00.000Z',
@@ -54,11 +69,49 @@ describe('Tenant isolation (e2e)', () => {
       () =>
         b.api().post('/appointments').send({
           customerId: ids.customer,
+          staffId: ids.staffB,
           title: 'Visit',
           startTime: '2030-02-10T10:00:00.000Z',
           endTime: '2030-02-10T11:00:00.000Z',
         }),
     ],
+    [
+      'POST appointment with foreign staff',
+      () =>
+        b.api().post('/appointments').send({
+          customerId: ids.customerB,
+          staffId: ids.staff,
+          title: 'Visit',
+          startTime: '2030-02-11T10:00:00.000Z',
+          endTime: '2030-02-11T11:00:00.000Z',
+        }),
+    ],
+    [
+      'POST appointment with foreign resource',
+      () =>
+        b.api().post('/appointments').send({
+          customerId: ids.customerB,
+          staffId: ids.staffB,
+          resourceId: ids.resource,
+          title: 'Visit',
+          startTime: '2030-02-12T10:00:00.000Z',
+          endTime: '2030-02-12T11:00:00.000Z',
+        }),
+    ],
+    ['GET staff', () => b.api().get(`/staff/${ids.staff}`)],
+    ['PUT staff', () => b.api().put(`/staff/${ids.staff}`).send({ name: 'Hacked' })],
+    ['PUT staff working hours', () => b.api().put(`/staff/${ids.staff}/working-hours`).send({ ranges: [] })],
+    [
+      'POST staff time off',
+      () =>
+        b
+          .api()
+          .post(`/staff/${ids.staff}/time-off`)
+          .send({ startTime: '2030-06-01T00:00:00.000Z', endTime: '2030-06-02T00:00:00.000Z' }),
+    ],
+    ['DELETE staff time off', () => b.api().delete(`/staff/${ids.staff}/time-off/${ids.timeOff}`)],
+    ['PUT resource', () => b.api().put(`/resources/${ids.resource}`).send({ name: 'Hacked' })],
+    ['GET availability of foreign staff', () => b.api().get(`/appointments/availability?staffId=${ids.staff}&date=2030-01-10`)],
   ];
 
   it.each(crossTenantCases)('%s from another org is rejected', async (_name, call) => {
@@ -69,14 +122,21 @@ describe('Tenant isolation (e2e)', () => {
   it('lists never include other orgs data', async () => {
     const customers = await b.api().get('/customers').expect(200);
     const appointments = await b.api().get('/appointments').expect(200);
-    expect(customers.body.items).toHaveLength(0);
+    const staff = await b.api().get('/staff').expect(200);
+    const resources = await b.api().get('/resources').expect(200);
+    expect(customers.body.items.map((c: { id: string }) => c.id)).toEqual([ids.customerB]);
     expect(appointments.body.items).toHaveLength(0);
+    expect(staff.body.map((m: { id: string }) => m.id)).toEqual([ids.staffB]);
+    expect(resources.body).toHaveLength(0);
   });
 
   it('resources of org A are intact after the attempts', async () => {
     const customer = await a.api().get(`/customers/${ids.customer}`).expect(200);
     expect(customer.body.name).toBe('Customer A');
     await a.api().get(`/appointments/${ids.appointment}`).expect(200);
+    const staff = await a.api().get(`/staff/${ids.staff}`).expect(200);
+    expect(staff.body.name).toBe('Staff A');
+    expect(staff.body.upcomingTimeOff).toHaveLength(1);
   });
 
   describe('onboarding', () => {

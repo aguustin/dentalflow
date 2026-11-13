@@ -28,6 +28,7 @@ export class OrganizationPrismaRepository implements IOrganizationRepository {
         slug: data.slug,
         vertical: data.vertical,
         enabledModules: data.enabledModules,
+        ...(data.timezone && { timezone: data.timezone }),
       },
     });
     return this.toEntity(row);
@@ -44,6 +45,7 @@ export class OrganizationPrismaRepository implements IOrganizationRepository {
     slug: string;
     vertical: string;
     enabledModules: string[];
+    timezone: string;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -54,6 +56,7 @@ export class OrganizationPrismaRepository implements IOrganizationRepository {
       slug: row.slug,
       vertical: row.vertical,
       enabledModules: row.enabledModules,
+      timezone: row.timezone,
       isActive: row.isActive,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

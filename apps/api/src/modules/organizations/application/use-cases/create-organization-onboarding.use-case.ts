@@ -75,6 +75,7 @@ export class CreateOrganizationOnboardingUseCase {
       slug: command.slug,
       vertical: vertical.key,
       enabledModules: [...vertical.modules],
+      timezone: command.timezone,
     });
     this.logger.log(`Organization created: ${org.slug} (${org.id})`);
 

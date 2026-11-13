@@ -8,6 +8,8 @@ export const DENTAL_VERTICAL: VerticalTemplate = {
   terminology: {
     customer: { singular: 'Paciente', plural: 'Pacientes' },
     appointment: { singular: 'Turno', plural: 'Turnos' },
+    staff: { singular: 'Profesional', plural: 'Profesionales' },
+    resource: { singular: 'Sillón', plural: 'Sillones' },
   },
   customerAttributes: [
     { key: 'birthDate', label: 'Fecha de nacimiento', type: 'date' },
@@ -25,11 +27,19 @@ export const DENTAL_VERTICAL: VerticalTemplate = {
         'appointments.read',
         'appointments.update',
         'appointments.delete',
+        'staff.read',
+        'staff.update',
       ],
     },
     {
       name: 'professional',
-      permissions: ['customers.read', 'customers.update', 'appointments.read', 'appointments.update'],
+      permissions: [
+        'customers.read',
+        'customers.update',
+        'appointments.read',
+        'appointments.update',
+        'staff.read',
+      ],
     },
   ],
 };

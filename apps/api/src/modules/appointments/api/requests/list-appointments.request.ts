@@ -4,6 +4,11 @@ import { IsDateString, IsEnum, IsInt, IsOptional, IsUUID, Max, Min } from 'class
 import { AppointmentStatusEnum } from '../../domain/value-objects/appointment-status.vo';
 
 export class ListAppointmentsRequest {
+  @ApiPropertyOptional({ description: 'Filter by staff member ID' })
+  @IsOptional()
+  @IsUUID()
+  staffId?: string;
+
   @ApiPropertyOptional({ description: 'Filter by customer ID' })
   @IsOptional()
   @IsUUID()

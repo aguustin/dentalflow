@@ -23,6 +23,8 @@ export interface Vertical {
   terminology: {
     customer: Terminology
     appointment: Terminology
+    staff: Terminology
+    resource: Terminology
   }
   customerAttributes: AttributeField[]
 }
@@ -33,6 +35,8 @@ export interface CurrentOrganization {
   slug: string
   vertical: Vertical
   enabledModules: ModuleKey[]
+  /** IANA time zone; working hours and availability are expressed in it */
+  timezone: string
   isActive: boolean
   createdAt: string
   subscription: { planName: string; status: string; startDate: string } | null

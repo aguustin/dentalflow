@@ -6,6 +6,7 @@ export interface CreateOrganizationData {
   slug: string;
   vertical: string;
   enabledModules: string[];
+  timezone?: string;
 }
 
 export interface IOrganizationRepository {

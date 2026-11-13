@@ -5,6 +5,8 @@ export interface CreateAppointmentProps {
   id: string;
   organizationId: string;
   customerId: string;
+  staffId: string;
+  resourceId?: string | null;
   title: string;
   description?: string | null;
   startTime: Date;
@@ -15,6 +17,8 @@ export interface ReconstructAppointmentProps {
   id: string;
   organizationId: string;
   customerId: string;
+  staffId: string;
+  resourceId: string | null;
   title: string;
   description: string | null;
   timeRange: TimeRange;
@@ -27,6 +31,8 @@ export class AppointmentEntity {
   public readonly id: string;
   public readonly organizationId: string;
   public readonly customerId: string;
+  public readonly staffId: string;
+  public readonly resourceId: string | null;
   public readonly title: string;
   public readonly description: string | null;
   public readonly timeRange: TimeRange;
@@ -38,6 +44,8 @@ export class AppointmentEntity {
     this.id = props.id;
     this.organizationId = props.organizationId;
     this.customerId = props.customerId;
+    this.staffId = props.staffId;
+    this.resourceId = props.resourceId;
     this.title = props.title;
     this.description = props.description;
     this.timeRange = props.timeRange;
@@ -55,6 +63,8 @@ export class AppointmentEntity {
       id: props.id,
       organizationId: props.organizationId,
       customerId: props.customerId,
+      staffId: props.staffId,
+      resourceId: props.resourceId ?? null,
       title,
       description: props.description?.trim() || null,
       timeRange: TimeRange.create(props.startTime, props.endTime),
@@ -113,6 +123,19 @@ export class AppointmentEntity {
     });
   }
 
+  /** Moves the appointment to another staff member and/or resource (null clears the resource). */
+  reassign(changes: { staffId?: string; resourceId?: string | null }): AppointmentEntity {
+    if (this.status.isTerminal()) {
+      throw new Error(`Cannot reassign appointment in terminal state: ${this.status.value}`);
+    }
+    return new AppointmentEntity({
+      ...this._snapshot(),
+      staffId: changes.staffId ?? this.staffId,
+      resourceId: changes.resourceId !== undefined ? changes.resourceId : this.resourceId,
+      updatedAt: new Date(),
+    });
+  }
+
   private _applyTransition(next: AppointmentStatusEnum): AppointmentEntity {
     return new AppointmentEntity({
       ...this._snapshot(),
@@ -126,6 +149,8 @@ export class AppointmentEntity {
       id: this.id,
       organizationId: this.organizationId,
       customerId: this.customerId,
+      staffId: this.staffId,
+      resourceId: this.resourceId,
       title: this.title,
       description: this.description,
       timeRange: this.timeRange,

@@ -20,6 +20,8 @@ import { GetAppointmentUseCase } from '../../application/use-cases/get-appointme
 import { ListAppointmentsUseCase } from '../../application/use-cases/list-appointments.use-case';
 import { RescheduleAppointmentUseCase } from '../../application/use-cases/reschedule-appointment.use-case';
 import { CancelAppointmentUseCase } from '../../application/use-cases/cancel-appointment.use-case';
+import { GetAvailabilityUseCase } from '../../application/use-cases/get-availability.use-case';
+import { AvailabilityRequest } from '../requests/availability.request';
 import { AppointmentDto, ListAppointmentsResult } from '../../application/dtos/appointment.dto';
 import { CreateAppointmentRequest } from '../requests/create-appointment.request';
 import { UpdateAppointmentRequest } from '../requests/update-appointment.request';
@@ -36,7 +38,20 @@ export class AppointmentsController {
     private readonly listAppointments: ListAppointmentsUseCase,
     private readonly rescheduleAppointment: RescheduleAppointmentUseCase,
     private readonly cancelAppointment: CancelAppointmentUseCase,
+    private readonly getAvailability: GetAvailabilityUseCase,
   ) {}
+
+  // Declared before ':id' so "availability" is not captured as an id
+  @Get('availability')
+  @RequirePermissions('appointments.read')
+  @ApiOperation({ summary: 'Free slots of a staff member on a day (org time zone)' })
+  availability(@Query() query: AvailabilityRequest, @CurrentUser() actor: RequestUser) {
+    return this.getAvailability.execute(actor.organizationId, {
+      staffId: query.staffId,
+      date: query.date,
+      durationMinutes: query.duration ?? 30,
+    });
+  }
 
   @Post()
   @RequirePermissions('appointments.create')
@@ -48,6 +63,8 @@ export class AppointmentsController {
     return this.createAppointment.execute({
       organizationId: actor.organizationId,
       customerId: body.customerId,
+      staffId: body.staffId,
+      resourceId: body.resourceId,
       title: body.title,
       description: body.description,
       startTime: new Date(body.startTime),
@@ -64,6 +81,7 @@ export class AppointmentsController {
   ): Promise<ListAppointmentsResult> {
     return this.listAppointments.execute(actor.organizationId, {
       customerId: query.customerId,
+      staffId: query.staffId,
       status: query.status,
       startAfter: query.startAfter ? new Date(query.startAfter) : undefined,
       startBefore: query.startBefore ? new Date(query.startBefore) : undefined,
@@ -90,6 +108,8 @@ export class AppointmentsController {
     @CurrentUser() actor: RequestUser,
   ): Promise<AppointmentDto> {
     return this.rescheduleAppointment.execute(id, actor.organizationId, {
+      staffId: body.staffId,
+      resourceId: body.resourceId,
       title: body.title,
       description: body.description,
       startTime: body.startTime ? new Date(body.startTime) : undefined,
