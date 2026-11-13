@@ -16,13 +16,14 @@ import { UsersModule } from './modules/core/users/users.module';
 import { OrganizationsModule } from './modules/core/organizations/organizations.module';
 import { RolesModule } from './modules/core/roles/roles.module';
 import { PermissionsModule } from './modules/core/permissions/permissions.module';
-import { PatientsModule } from './modules/patients/patients.module';
+import { CustomersModule } from './modules/customers/customers.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { OrganizationOnboardingModule } from './modules/organizations/organizations.module';
 
 import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
 import { PermissionsGuard } from './shared/guards/permissions.guard';
+import { ModuleGuard } from './shared/guards/module.guard';
 import { AuditInterceptor } from './shared/interceptors/audit.interceptor';
 import { DomainExceptionFilter } from './shared/filters/domain-exception.filter';
 import { RequestIdMiddleware } from './shared/middleware/request-id.middleware';
@@ -55,7 +56,7 @@ import { TenantResolutionMiddleware } from './shared/middleware/tenant-resolutio
     OrganizationsModule,
     RolesModule,
     PermissionsModule,
-    PatientsModule,
+    CustomersModule,
     AppointmentsModule,
     BillingModule,
   ],
@@ -66,6 +67,7 @@ import { TenantResolutionMiddleware } from './shared/middleware/tenant-resolutio
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
+    { provide: APP_GUARD, useClass: ModuleGuard },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
 })

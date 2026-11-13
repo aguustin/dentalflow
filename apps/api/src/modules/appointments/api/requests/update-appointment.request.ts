@@ -33,7 +33,7 @@ export class UpdateAppointmentRequest {
 
   @ApiPropertyOptional({
     enum: UpdatableStatus,
-    description: 'CONFIRMED: confirm appointment. COMPLETED: mark as done. NO_SHOW: patient did not attend.',
+    description: 'CONFIRMED: confirm appointment. COMPLETED: mark as done. NO_SHOW: customer did not attend.',
   })
   @IsOptional()
   @IsEnum(UpdatableStatus)

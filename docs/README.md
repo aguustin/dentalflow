@@ -6,6 +6,10 @@ This folder contains living architectural documentation. It describes the intend
 
 ## 1. System Overview
 
+> **Note:** DentalFlow is evolving into a multi-vertical SaaS (dental first, then repair shops and retail).
+> "Patients" are now generic **Customers**; dental-specific data lives in `Customer.attributes` and in the
+> future dental module. See [ROADMAP.md](ROADMAP.md).
+
 DentalFlow is a **dental clinic management platform** that provides:
 
 - Appointment scheduling and calendar management

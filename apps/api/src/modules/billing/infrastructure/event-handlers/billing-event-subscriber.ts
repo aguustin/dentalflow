@@ -11,7 +11,7 @@ import { IncrementUsageUseCase } from '../../application/use-cases/increment-usa
  *
  * Contract: only the event type string and the top-level `organizationId`
  * field (both part of the global DomainEvent contract) are used.
- * No coupling to Patients or Appointments internal types.
+ * No coupling to Customers or Appointments internal types.
  */
 @Injectable()
 export class BillingEventSubscriber implements OnModuleInit {
@@ -24,8 +24,8 @@ export class BillingEventSubscriber implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    this.eventBus.subscribe(DOMAIN_EVENT_TYPES.PATIENT_CREATED, {
-      handle: (event: DomainEvent) => this.onPatientCreated(event),
+    this.eventBus.subscribe(DOMAIN_EVENT_TYPES.CUSTOMER_CREATED, {
+      handle: (event: DomainEvent) => this.onCustomerCreated(event),
     });
 
     this.eventBus.subscribe(DOMAIN_EVENT_TYPES.APPOINTMENT_CREATED, {
@@ -35,11 +35,11 @@ export class BillingEventSubscriber implements OnModuleInit {
     this.logger.log('Billing event subscriptions registered');
   }
 
-  private async onPatientCreated(event: DomainEvent): Promise<void> {
+  private async onCustomerCreated(event: DomainEvent): Promise<void> {
     if (!event.organizationId) return;
-    await this.incrementUsage.execute(event.organizationId, 'patients');
+    await this.incrementUsage.execute(event.organizationId, 'customers');
     this.logger.debug(
-      `[chain:${event.eventChainId}] Usage incremented: patients for org=${event.organizationId}`,
+      `[chain:${event.eventChainId}] Usage incremented: customers for org=${event.organizationId}`,
     );
   }
 

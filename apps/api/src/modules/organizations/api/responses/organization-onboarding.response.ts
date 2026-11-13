@@ -5,6 +5,8 @@ export class OrganizationOnboardingResponse {
     id: string;
     name: string;
     slug: string;
+    vertical: string;
+    enabledModules: string[];
     isActive: boolean;
     createdAt: string;
   };
@@ -31,6 +33,8 @@ export class OrganizationOnboardingResponse {
       id: result.organization.id,
       name: result.organization.name,
       slug: result.organization.slug,
+      vertical: result.organization.vertical,
+      enabledModules: result.organization.enabledModules,
       isActive: result.organization.isActive,
       createdAt: result.organization.createdAt.toISOString(),
     };
@@ -58,6 +62,8 @@ export class CurrentOrganizationResponse {
   id: string;
   name: string;
   slug: string;
+  vertical: CurrentOrganizationDto['vertical'];
+  enabledModules: string[];
   isActive: boolean;
   createdAt: string;
   subscription: {
@@ -71,6 +77,8 @@ export class CurrentOrganizationResponse {
     res.id = dto.id;
     res.name = dto.name;
     res.slug = dto.slug;
+    res.vertical = dto.vertical;
+    res.enabledModules = dto.enabledModules;
     res.isActive = dto.isActive;
     res.createdAt = dto.createdAt.toISOString();
     res.subscription = dto.subscription

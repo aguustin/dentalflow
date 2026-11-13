@@ -23,7 +23,7 @@ src/
   modules/              # One NestJS module per domain
     auth/
     appointments/
-    patients/
+    customers/
     treatments/
     billing/
     staff/
@@ -58,7 +58,7 @@ Each domain module will follow the pattern:
 pnpm dev          # NestJS watch mode
 pnpm build        # Compile to dist/
 pnpm test         # Unit tests (Jest)
-pnpm test:e2e     # E2E tests
+pnpm test:e2e     # E2E tests (needs Postgres: `pnpm db:test:up`; uses DB dentalflow_test)
 pnpm typecheck    # Type-check without emitting
 ```
 

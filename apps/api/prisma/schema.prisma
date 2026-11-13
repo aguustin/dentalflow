@@ -27,13 +27,16 @@ model Organization {
   id        String   @id @default(uuid())
   name      String
   slug      String   @unique
+  /// Business vertical (see src/shared/verticals). Drives enabled modules, attributes schema and UI.
+  vertical       String   @default("dental")
+  enabledModules String[] @default([]) @map("enabled_modules")
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   memberships  Membership[]
   roles        Role[]
-  patients     Patient[]
+  customers    Customer[]
   appointments Appointment[]
   subscription Subscription?
 
@@ -105,13 +108,15 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-model Patient {
+model Customer {
   id             String   @id @default(uuid())
   organizationId String   @map("organization_id")
   name           String
   email          String?
   phone          String?
   documentId     String?  @map("document_id")
+  /// Vertical-specific fields, validated against the organization's vertical schema.
+  attributes     Json     @default("{}")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -120,7 +125,7 @@ model Patient {
 
   @@index([organizationId])
   @@index([organizationId, documentId])
-  @@map("patients")
+  @@map("customers")
 }
 
 enum AppointmentStatus {
@@ -134,7 +139,7 @@ enum AppointmentStatus {
 model Appointment {
   id             String            @id @default(uuid())
   organizationId String            @map("organization_id")
-  patientId      String            @map("patient_id")
+  customerId     String            @map("customer_id")
   title          String
   description    String?
   startTime      DateTime          @map("start_time")
@@ -144,12 +149,12 @@ model Appointment {
   updatedAt      DateTime          @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
-  @@index([organizationId, patientId])
+  @@index([organizationId, customerId])
   @@index([organizationId, status])
-  @@index([patientId, startTime, endTime])
+  @@index([customerId, startTime, endTime])
   @@map("appointments")
 }
 
@@ -168,7 +173,7 @@ model Plan {
   price           Decimal  @db.Decimal(10, 2)
   currency        String   @default("USD")
   features        String[]
-  maxPatients     Int      @map("max_patients")      // -1 = unlimited
+  maxCustomers    Int      @map("max_customers")     // -1 = unlimited
   maxAppointments Int      @map("max_appointments")  // -1 = unlimited
   isActive        Boolean  @default(true) @map("is_active")
   createdAt       DateTime @default(now()) @map("created_at")
@@ -198,7 +203,7 @@ model Subscription {
 model UsageRecord {
   id             String   @id @default(uuid())
   organizationId String   @map("organization_id")
-  metric         String   // 'patients' | 'appointments'
+  metric         String   // 'customers' | 'appointments'
   count          Int      @default(0)
   period         String   // 'all-time' | 'YYYY-MM'
   createdAt      DateTime @default(now()) @map("created_at")

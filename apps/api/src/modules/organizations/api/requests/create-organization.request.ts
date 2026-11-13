@@ -1,4 +1,5 @@
 import { IsEmail, IsIn, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { VERTICAL_KEYS } from '../../../../shared/verticals';
 import { PLAN_NAMES } from '../../../billing/domain/entities/plan.entity';
 
 export class CreateOrganizationRequest {
@@ -29,4 +30,9 @@ export class CreateOrganizationRequest {
   @IsString()
   @IsIn(PLAN_NAMES as unknown as string[])
   planName?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(VERTICAL_KEYS)
+  vertical?: string;
 }

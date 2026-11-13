@@ -3,7 +3,7 @@ import { AppointmentEntity } from '../../domain/entities/appointment.entity';
 export interface AppointmentDto {
   id: string;
   organizationId: string;
-  patientId: string;
+  customerId: string;
   title: string;
   description: string | null;
   startTime: Date;
@@ -16,7 +16,7 @@ export interface AppointmentDto {
 
 export interface CreateAppointmentCommand {
   organizationId: string;
-  patientId: string;
+  customerId: string;
   title: string;
   description?: string | null;
   startTime: Date;
@@ -32,7 +32,7 @@ export interface RescheduleAppointmentCommand {
 }
 
 export interface ListAppointmentsFilters {
-  patientId?: string;
+  customerId?: string;
   status?: string;
   startAfter?: Date;
   startBefore?: Date;
@@ -51,7 +51,7 @@ export function toAppointmentDto(entity: AppointmentEntity): AppointmentDto {
   return {
     id: entity.id,
     organizationId: entity.organizationId,
-    patientId: entity.patientId,
+    customerId: entity.customerId,
     title: entity.title,
     description: entity.description,
     startTime: entity.timeRange.startTime,

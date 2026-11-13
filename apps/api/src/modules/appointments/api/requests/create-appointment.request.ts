@@ -2,10 +2,10 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDateString, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateAppointmentRequest {
-  @ApiProperty({ description: 'Patient ID (must belong to the same organization)' })
+  @ApiProperty({ description: 'Customer ID (must belong to the same organization)' })
   @IsUUID()
   @IsNotEmpty()
-  patientId: string;
+  customerId: string;
 
   @ApiProperty({ example: 'Annual Check-up' })
   @IsString()

@@ -5,10 +5,10 @@ import { AppointmentEntity } from '../../domain/entities/appointment.entity';
 import { AppointmentCreatedEvent } from '../../domain/events/appointment-created.event';
 import { IEventBus } from '../../../../shared/types/event-bus.interface';
 import { TOKENS } from '../../../../shared/injection-tokens';
-import { APPOINTMENT_REPOSITORY_TOKEN, PATIENT_EXISTENCE_CHECKER_TOKEN } from '../../appointments.tokens';
+import { APPOINTMENT_REPOSITORY_TOKEN, CUSTOMER_EXISTENCE_CHECKER_TOKEN } from '../../appointments.tokens';
 import { CreateAppointmentCommand, AppointmentDto, toAppointmentDto } from '../dtos/appointment.dto';
 import { AppointmentOverlapService } from '../services/appointment-overlap.service';
-import { IPatientExistenceChecker } from '../services/patient-existence-checker.interface';
+import { ICustomerExistenceChecker } from '../services/customer-existence-checker.interface';
 
 @Injectable()
 export class CreateAppointmentUseCase {
@@ -17,19 +17,19 @@ export class CreateAppointmentUseCase {
     private readonly appointmentRepository: IAppointmentRepository,
     @Inject(TOKENS.EVENT_BUS)
     private readonly eventBus: IEventBus,
-    @Inject(PATIENT_EXISTENCE_CHECKER_TOKEN)
-    private readonly patientChecker: IPatientExistenceChecker,
+    @Inject(CUSTOMER_EXISTENCE_CHECKER_TOKEN)
+    private readonly customerChecker: ICustomerExistenceChecker,
     private readonly overlapService: AppointmentOverlapService,
   ) {}
 
   async execute(command: CreateAppointmentCommand): Promise<AppointmentDto> {
-    const patientExists = await this.patientChecker.existsInOrganization(
-      command.patientId,
+    const customerExists = await this.customerChecker.existsInOrganization(
+      command.customerId,
       command.organizationId,
     );
-    if (!patientExists) {
+    if (!customerExists) {
       throw new NotFoundException(
-        `Patient '${command.patientId}' not found in this organization`,
+        `Customer '${command.customerId}' not found in this organization`,
       );
     }
 
@@ -41,7 +41,7 @@ export class CreateAppointmentUseCase {
     }
 
     await this.overlapService.assertNoOverlap(
-      command.patientId,
+      command.customerId,
       command.organizationId,
       startTime,
       endTime,
@@ -52,7 +52,7 @@ export class CreateAppointmentUseCase {
       entity = AppointmentEntity.create({
         id: randomUUID(),
         organizationId: command.organizationId,
-        patientId: command.patientId,
+        customerId: command.customerId,
         title: command.title,
         description: command.description ?? null,
         startTime,
@@ -68,7 +68,7 @@ export class CreateAppointmentUseCase {
       new AppointmentCreatedEvent(
         saved.id,
         saved.organizationId,
-        saved.patientId,
+        saved.customerId,
         saved.timeRange.startTime,
         saved.timeRange.endTime,
       ),

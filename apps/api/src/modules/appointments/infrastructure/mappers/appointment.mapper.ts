@@ -5,7 +5,7 @@ import { AppointmentStatus } from '../../domain/value-objects/appointment-status
 interface AppointmentRow {
   id: string;
   organizationId: string;
-  patientId: string;
+  customerId: string;
   title: string;
   description: string | null;
   startTime: Date;
@@ -20,7 +20,7 @@ export class AppointmentMapper {
     return AppointmentEntity.reconstitute({
       id: row.id,
       organizationId: row.organizationId,
-      patientId: row.patientId,
+      customerId: row.customerId,
       title: row.title,
       description: row.description,
       timeRange: TimeRange.create(row.startTime, row.endTime),

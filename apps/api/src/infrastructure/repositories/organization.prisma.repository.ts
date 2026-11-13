@@ -26,6 +26,8 @@ export class OrganizationPrismaRepository implements IOrganizationRepository {
         id: data.id,
         name: data.name,
         slug: data.slug,
+        vertical: data.vertical,
+        enabledModules: data.enabledModules,
       },
     });
     return this.toEntity(row);
@@ -40,6 +42,8 @@ export class OrganizationPrismaRepository implements IOrganizationRepository {
     id: string;
     name: string;
     slug: string;
+    vertical: string;
+    enabledModules: string[];
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -48,6 +52,8 @@ export class OrganizationPrismaRepository implements IOrganizationRepository {
       id: row.id,
       name: row.name,
       slug: row.slug,
+      vertical: row.vertical,
+      enabledModules: row.enabledModules,
       isActive: row.isActive,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

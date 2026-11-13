@@ -3,7 +3,7 @@ import { DomainEvent } from '../../../../domain/events/domain-event.base';
 interface AppointmentRescheduledPayload {
   appointmentId: string;
   organizationId: string;
-  patientId: string;
+  customerId: string;
   newStartTime: Date;
   newEndTime: Date;
 }
@@ -12,14 +12,14 @@ export class AppointmentRescheduledEvent extends DomainEvent<AppointmentReschedu
   constructor(
     appointmentId: string,
     organizationId: string,
-    patientId: string,
+    customerId: string,
     newStartTime: Date,
     newEndTime: Date,
   ) {
     super('appointment.rescheduled', organizationId, {
       appointmentId,
       organizationId,
-      patientId,
+      customerId,
       newStartTime,
       newEndTime,
     });

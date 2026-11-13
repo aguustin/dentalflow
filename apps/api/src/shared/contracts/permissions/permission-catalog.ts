@@ -27,11 +27,11 @@ export const PERMISSION_CATALOG = {
     READ: 'permissions.read',
     MANAGE: 'permissions.manage',
   },
-  PATIENTS: {
-    CREATE: 'patients.create',
-    READ: 'patients.read',
-    UPDATE: 'patients.update',
-    DELETE: 'patients.delete',
+  CUSTOMERS: {
+    CREATE: 'customers.create',
+    READ: 'customers.read',
+    UPDATE: 'customers.update',
+    DELETE: 'customers.delete',
   },
   APPOINTMENTS: {
     CREATE: 'appointments.create',

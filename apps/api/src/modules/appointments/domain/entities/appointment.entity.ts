@@ -4,7 +4,7 @@ import { AppointmentStatus, AppointmentStatusEnum } from '../value-objects/appoi
 export interface CreateAppointmentProps {
   id: string;
   organizationId: string;
-  patientId: string;
+  customerId: string;
   title: string;
   description?: string | null;
   startTime: Date;
@@ -14,7 +14,7 @@ export interface CreateAppointmentProps {
 export interface ReconstructAppointmentProps {
   id: string;
   organizationId: string;
-  patientId: string;
+  customerId: string;
   title: string;
   description: string | null;
   timeRange: TimeRange;
@@ -26,7 +26,7 @@ export interface ReconstructAppointmentProps {
 export class AppointmentEntity {
   public readonly id: string;
   public readonly organizationId: string;
-  public readonly patientId: string;
+  public readonly customerId: string;
   public readonly title: string;
   public readonly description: string | null;
   public readonly timeRange: TimeRange;
@@ -37,7 +37,7 @@ export class AppointmentEntity {
   private constructor(props: ReconstructAppointmentProps) {
     this.id = props.id;
     this.organizationId = props.organizationId;
-    this.patientId = props.patientId;
+    this.customerId = props.customerId;
     this.title = props.title;
     this.description = props.description;
     this.timeRange = props.timeRange;
@@ -54,7 +54,7 @@ export class AppointmentEntity {
     return new AppointmentEntity({
       id: props.id,
       organizationId: props.organizationId,
-      patientId: props.patientId,
+      customerId: props.customerId,
       title,
       description: props.description?.trim() || null,
       timeRange: TimeRange.create(props.startTime, props.endTime),
@@ -125,7 +125,7 @@ export class AppointmentEntity {
     return {
       id: this.id,
       organizationId: this.organizationId,
-      patientId: this.patientId,
+      customerId: this.customerId,
       title: this.title,
       description: this.description,
       timeRange: this.timeRange,

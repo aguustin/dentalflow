@@ -25,7 +25,7 @@ export class ListAppointmentsUseCase {
     const offset = Math.max(filters?.offset ?? 0, 0);
 
     const { items, total } = await this.appointmentRepository.findAll(organizationId, {
-      patientId: filters?.patientId,
+      customerId: filters?.customerId,
       status: filters?.status,
       startAfter: filters?.startAfter,
       startBefore: filters?.startBefore,

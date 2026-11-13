@@ -52,6 +52,7 @@ export class OrganizationsOnboardingController {
       ownerLastName: body.ownerLastName,
       ownerPassword: body.ownerPassword,
       planName: body.planName,
+      vertical: body.vertical,
     });
     return OrganizationOnboardingResponse.from(result);
   }

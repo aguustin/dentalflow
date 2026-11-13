@@ -1,4 +1,4 @@
-export const BILLING_METRICS = ['patients', 'appointments'] as const;
+export const BILLING_METRICS = ['customers', 'appointments'] as const;
 export type BillingMetric = (typeof BILLING_METRICS)[number];
 
 export function isBillingMetric(value: string): value is BillingMetric {

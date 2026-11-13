@@ -30,7 +30,7 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
 
     const where: Prisma.AppointmentWhereInput = {
       organizationId,
-      ...(options?.patientId ? { patientId: options.patientId } : {}),
+      ...(options?.customerId ? { customerId: options.customerId } : {}),
       ...(options?.status ? { status: options.status as PrismaStatus } : {}),
       ...(options?.startAfter || options?.startBefore
         ? {
@@ -56,7 +56,7 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
   }
 
   async findOverlapping(
-    patientId: string,
+    customerId: string,
     organizationId: string,
     range: OverlapCheckRange,
     excludeId?: string,
@@ -64,7 +64,7 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
     // Overlap: existing.startTime < range.endTime AND existing.endTime > range.startTime
     const rows = await this.prisma.appointment.findMany({
       where: {
-        patientId,
+        customerId,
         organizationId,
         status: { in: ACTIVE_STATUSES },
         startTime: { lt: range.endTime },
@@ -81,7 +81,7 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
       data: {
         id: entity.id,
         organizationId: entity.organizationId,
-        patientId: entity.patientId,
+        customerId: entity.customerId,
         title: entity.title,
         description: entity.description,
         startTime: entity.timeRange.startTime,

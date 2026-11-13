@@ -22,10 +22,10 @@ const CORE_PERMISSIONS = [
   { resource: 'permissions', action: 'read' },
   { resource: 'permissions', action: 'manage' },
   // Dental domain placeholders (no logic — just permission definitions)
-  { resource: 'patients', action: 'create' },
-  { resource: 'patients', action: 'read' },
-  { resource: 'patients', action: 'update' },
-  { resource: 'patients', action: 'delete' },
+  { resource: 'customers', action: 'create' },
+  { resource: 'customers', action: 'read' },
+  { resource: 'customers', action: 'update' },
+  { resource: 'customers', action: 'delete' },
   { resource: 'appointments', action: 'create' },
   { resource: 'appointments', action: 'read' },
   { resource: 'appointments', action: 'update' },
@@ -54,7 +54,7 @@ async function main() {
   // 2. Create demo organization
   const org = await prisma.organization.upsert({
     where: { slug: 'demo-clinic' },
-    create: { name: 'Demo Clinic', slug: 'demo-clinic' },
+    create: { name: 'Demo Clinic', slug: 'demo-clinic', vertical: 'dental', enabledModules: ['customers', 'scheduling'] },
     update: {},
   });
   console.log(`✓ Organization: ${org.name} (${org.slug})`);
@@ -82,7 +82,7 @@ async function main() {
     create: { name: 'viewer', organizationId: org.id },
     update: {},
   });
-  const readPermKeys = ['users.read', 'patients.read', 'appointments.read', 'permissions.read'];
+  const readPermKeys = ['users.read', 'customers.read', 'appointments.read', 'permissions.read'];
   for (const key of readPermKeys) {
     const permId = createdPermissions[key];
     if (permId) {
@@ -142,8 +142,8 @@ async function main() {
       displayName: 'Free',
       price: 0,
       currency: 'USD',
-      features: ['patients', 'appointments'],
-      maxPatients: 10,
+      features: ['customers', 'appointments'],
+      maxCustomers: 10,
       maxAppointments: 30,
     },
     {
@@ -151,8 +151,8 @@ async function main() {
       displayName: 'Pro',
       price: 49,
       currency: 'USD',
-      features: ['patients', 'appointments', 'reporting', 'exports'],
-      maxPatients: 500,
+      features: ['customers', 'appointments', 'reporting', 'exports'],
+      maxCustomers: 500,
       maxAppointments: 2000,
     },
     {
@@ -160,8 +160,8 @@ async function main() {
       displayName: 'Enterprise',
       price: 199,
       currency: 'USD',
-      features: ['patients', 'appointments', 'reporting', 'exports', 'api_access', 'multi_location'],
-      maxPatients: -1,
+      features: ['customers', 'appointments', 'reporting', 'exports', 'api_access', 'multi_location'],
+      maxCustomers: -1,
       maxAppointments: -1,
     },
   ];
@@ -176,7 +176,7 @@ async function main() {
         price: plan.price,
         currency: plan.currency,
         features: plan.features,
-        maxPatients: plan.maxPatients,
+        maxCustomers: plan.maxCustomers,
         maxAppointments: plan.maxAppointments,
         isActive: true,
       },
@@ -184,7 +184,7 @@ async function main() {
         displayName: plan.displayName,
         price: plan.price,
         features: plan.features,
-        maxPatients: plan.maxPatients,
+        maxCustomers: plan.maxCustomers,
         maxAppointments: plan.maxAppointments,
       },
     });

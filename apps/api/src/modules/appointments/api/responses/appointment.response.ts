@@ -8,7 +8,7 @@ export class AppointmentResponse {
   organizationId: string;
 
   @ApiProperty()
-  patientId: string;
+  customerId: string;
 
   @ApiProperty()
   title: string;

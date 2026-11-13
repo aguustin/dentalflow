@@ -34,10 +34,10 @@ export const DOMAIN_EVENT_TYPES = {
   ORGANIZATION_CREATED: 'organization.created',
   MEMBERSHIP_CREATED: 'membership.created',
   ROLE_ASSIGNED: 'role.assigned',
-  // Patients module
-  PATIENT_CREATED: 'patient.created',
-  PATIENT_UPDATED: 'patient.updated',
-  PATIENT_DELETED: 'patient.deleted',
+  // Customers module
+  CUSTOMER_CREATED: 'customer.created',
+  CUSTOMER_UPDATED: 'customer.updated',
+  CUSTOMER_DELETED: 'customer.deleted',
   // Appointments module
   APPOINTMENT_CREATED: 'appointment.created',
   APPOINTMENT_RESCHEDULED: 'appointment.rescheduled',

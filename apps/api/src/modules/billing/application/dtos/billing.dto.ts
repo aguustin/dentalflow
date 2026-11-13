@@ -12,7 +12,7 @@ export interface PlanDto {
   price: number;
   currency: string;
   features: string[];
-  maxPatients: number;
+  maxCustomers: number;
   maxAppointments: number;
 }
 
@@ -24,7 +24,7 @@ export function toPlanDto(entity: PlanEntity): PlanDto {
     price: entity.price,
     currency: entity.currency,
     features: entity.features,
-    maxPatients: entity.limits.maxPatients,
+    maxCustomers: entity.limits.maxCustomers,
     maxAppointments: entity.limits.maxAppointments,
   };
 }

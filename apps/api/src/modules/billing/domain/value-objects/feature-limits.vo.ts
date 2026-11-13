@@ -4,7 +4,7 @@ export const UNLIMITED = -1;
 
 export class FeatureLimits {
   constructor(
-    public readonly maxPatients: number,
+    public readonly maxCustomers: number,
     public readonly maxAppointments: number,
   ) {}
 
@@ -14,8 +14,8 @@ export class FeatureLimits {
 
   getLimit(metric: BillingMetric): number {
     switch (metric) {
-      case 'patients':
-        return this.maxPatients;
+      case 'customers':
+        return this.maxCustomers;
       case 'appointments':
         return this.maxAppointments;
     }

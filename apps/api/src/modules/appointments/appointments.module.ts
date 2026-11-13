@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { APPOINTMENT_REPOSITORY_TOKEN, PATIENT_EXISTENCE_CHECKER_TOKEN } from './appointments.tokens';
+import { APPOINTMENT_REPOSITORY_TOKEN, CUSTOMER_EXISTENCE_CHECKER_TOKEN } from './appointments.tokens';
 import { AppointmentPrismaRepository } from './infrastructure/repositories/appointment.prisma.repository';
-import { PrismaPatientExistenceChecker } from './infrastructure/checkers/patient-existence.checker';
+import { PrismaCustomerExistenceChecker } from './infrastructure/checkers/customer-existence.checker';
 import { AppointmentOverlapService } from './application/services/appointment-overlap.service';
 import { CreateAppointmentUseCase } from './application/use-cases/create-appointment.use-case';
 import { GetAppointmentUseCase } from './application/use-cases/get-appointment.use-case';
@@ -15,7 +15,7 @@ import { AppointmentsController } from './api/controllers/appointments.controlle
   controllers: [AppointmentsController],
   providers: [
     { provide: APPOINTMENT_REPOSITORY_TOKEN, useClass: AppointmentPrismaRepository },
-    { provide: PATIENT_EXISTENCE_CHECKER_TOKEN, useClass: PrismaPatientExistenceChecker },
+    { provide: CUSTOMER_EXISTENCE_CHECKER_TOKEN, useClass: PrismaCustomerExistenceChecker },
     AppointmentOverlapService,
     CompleteAppointmentUseCase,       // declared first — RescheduleUseCase depends on it
     CreateAppointmentUseCase,

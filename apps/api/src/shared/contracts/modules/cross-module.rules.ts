@@ -11,7 +11,7 @@
  *    The consuming module declares the interface, the providing module's
  *    infrastructure layer implements it — NO import of the provider module.
  *
- *    Example: IPatientExistenceChecker is declared in appointments/application,
+ *    Example: ICustomerExistenceChecker is declared in appointments/application,
  *    implemented in appointments/infrastructure querying Prisma directly.
  *
  * 2. Domain events (via event bus)
@@ -22,17 +22,17 @@
  * ─── FORBIDDEN CROSS-MODULE PATTERNS ────────────────────────────────────────
  *
  * ✗ Importing a repository from another module:
- *     import { PatientPrismaRepository } from '../patients/...'  ← FORBIDDEN
+ *     import { CustomerPrismaRepository } from '../customers/...'  ← FORBIDDEN
  *
  * ✗ Importing a use case from another module:
- *     import { CreatePatientUseCase } from '../patients/...'     ← FORBIDDEN
+ *     import { CreateCustomerUseCase } from '../customers/...'     ← FORBIDDEN
  *
  * ✗ Importing a domain entity from another module directly:
- *     import { PatientEntity } from '../patients/domain/...'     ← FORBIDDEN
+ *     import { CustomerEntity } from '../customers/domain/...'     ← FORBIDDEN
  *     (use a shared read-only DTO or an existence-checker interface instead)
  *
  * ✗ Importing infrastructure from another module:
- *     import { PatientPrismaRepository } from '../patients/infra' ← FORBIDDEN
+ *     import { CustomerPrismaRepository } from '../customers/infra' ← FORBIDDEN
  *
  * ─── CROSS-MODULE CHECKER PATTERN ────────────────────────────────────────────
  *
@@ -70,8 +70,8 @@ export interface IExistenceChecker {
  * This serves as the authoritative registry of public module contracts.
  */
 export interface ModuleCrossModuleContracts {
-  /** Patients module: verifies a patient belongs to an organization */
-  'patients:existence': IExistenceChecker;
+  /** Customers module: verifies a customer belongs to an organization */
+  'customers:existence': IExistenceChecker;
   // Future contracts:
   // 'billing:subscription-active': IExistenceChecker;
   // 'staff:membership': IExistenceChecker;

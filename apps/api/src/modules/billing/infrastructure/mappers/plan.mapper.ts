@@ -8,7 +8,7 @@ interface PlanRow {
   price: { toNumber(): number } | number;
   currency: string;
   features: string[];
-  maxPatients: number;
+  maxCustomers: number;
   maxAppointments: number;
   isActive: boolean;
   createdAt: Date;
@@ -24,7 +24,7 @@ export class PlanMapper {
       price: typeof row.price === 'number' ? row.price : row.price.toNumber(),
       currency: row.currency,
       features: row.features,
-      limits: new FeatureLimits(row.maxPatients, row.maxAppointments),
+      limits: new FeatureLimits(row.maxCustomers, row.maxAppointments),
       isActive: row.isActive,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

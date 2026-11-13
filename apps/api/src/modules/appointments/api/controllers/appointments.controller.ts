@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../../../shared/decorators/current-user.decorator';
+import { RequireModule } from '../../../../shared/decorators/require-module.decorator';
 import { RequirePermissions } from '../../../../shared/decorators/require-permissions.decorator';
 import { RequestUser } from '../../../../shared/types/request-user.type';
 import { CreateAppointmentUseCase } from '../../application/use-cases/create-appointment.use-case';
@@ -26,6 +27,7 @@ import { ListAppointmentsRequest } from '../requests/list-appointments.request';
 
 @ApiTags('Appointments')
 @ApiBearerAuth()
+@RequireModule('scheduling')
 @Controller('appointments')
 export class AppointmentsController {
   constructor(
@@ -38,14 +40,14 @@ export class AppointmentsController {
 
   @Post()
   @RequirePermissions('appointments.create')
-  @ApiOperation({ summary: 'Schedule a new appointment for a patient' })
+  @ApiOperation({ summary: 'Schedule a new appointment for a customer' })
   create(
     @Body() body: CreateAppointmentRequest,
     @CurrentUser() actor: RequestUser,
   ): Promise<AppointmentDto> {
     return this.createAppointment.execute({
       organizationId: actor.organizationId,
-      patientId: body.patientId,
+      customerId: body.customerId,
       title: body.title,
       description: body.description,
       startTime: new Date(body.startTime),
@@ -61,7 +63,7 @@ export class AppointmentsController {
     @CurrentUser() actor: RequestUser,
   ): Promise<ListAppointmentsResult> {
     return this.listAppointments.execute(actor.organizationId, {
-      patientId: query.patientId,
+      customerId: query.customerId,
       status: query.status,
       startAfter: query.startAfter ? new Date(query.startAfter) : undefined,
       startBefore: query.startBefore ? new Date(query.startBefore) : undefined,

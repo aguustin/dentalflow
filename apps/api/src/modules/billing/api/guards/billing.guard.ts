@@ -15,12 +15,12 @@ import { RequestUser } from '../../../../shared/types/request-user.type';
 export const SKIP_BILLING_KEY = 'skipBilling';
 
 const BILLING_FEATURE_MAP: Record<string, string> = {
-  '/patients': 'patients',
+  '/customers': 'customers',
   '/appointments': 'appointments',
 };
 
-const BILLING_METRIC_MAP: Record<string, 'patients' | 'appointments'> = {
-  patients: 'patients',
+const BILLING_METRIC_MAP: Record<string, 'customers' | 'appointments'> = {
+  customers: 'customers',
   appointments: 'appointments',
 };
 

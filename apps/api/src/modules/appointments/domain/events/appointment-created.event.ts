@@ -3,7 +3,7 @@ import { DomainEvent } from '../../../../domain/events/domain-event.base';
 interface AppointmentCreatedPayload {
   appointmentId: string;
   organizationId: string;
-  patientId: string;
+  customerId: string;
   startTime: Date;
   endTime: Date;
 }
@@ -12,14 +12,14 @@ export class AppointmentCreatedEvent extends DomainEvent<AppointmentCreatedPaylo
   constructor(
     appointmentId: string,
     organizationId: string,
-    patientId: string,
+    customerId: string,
     startTime: Date,
     endTime: Date,
   ) {
     super('appointment.created', organizationId, {
       appointmentId,
       organizationId,
-      patientId,
+      customerId,
       startTime,
       endTime,
     });

@@ -4,6 +4,8 @@ export interface CreateOrganizationData {
   id: string;
   name: string;
   slug: string;
+  vertical: string;
+  enabledModules: string[];
 }
 
 export interface IOrganizationRepository {

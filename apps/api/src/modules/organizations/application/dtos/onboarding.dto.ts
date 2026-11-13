@@ -1,3 +1,8 @@
+import { VerticalTemplate } from '../../../../shared/verticals';
+
+/** Vertical template as exposed to clients (internal role templates omitted). */
+export type PublicVerticalDto = Omit<VerticalTemplate, 'roles'>;
+
 // ─── Onboarding command ────────────────────────────────────────────────────────
 
 export interface OnboardingCommand {
@@ -9,6 +14,8 @@ export interface OnboardingCommand {
   ownerPassword: string;
   /** Defaults to 'free' when omitted */
   planName?: string;
+  /** Business vertical key. Defaults to DEFAULT_VERTICAL when omitted */
+  vertical?: string;
 }
 
 // ─── Onboarding result ─────────────────────────────────────────────────────────
@@ -17,6 +24,8 @@ export interface OnboardingOrganizationDto {
   id: string;
   name: string;
   slug: string;
+  vertical: string;
+  enabledModules: string[];
   isActive: boolean;
   createdAt: Date;
 }
@@ -46,6 +55,9 @@ export interface CurrentOrganizationDto {
   id: string;
   name: string;
   slug: string;
+  /** Full vertical template (modules, terminology, attribute schema) for clients */
+  vertical: PublicVerticalDto;
+  enabledModules: string[];
   isActive: boolean;
   createdAt: Date;
   subscription: {

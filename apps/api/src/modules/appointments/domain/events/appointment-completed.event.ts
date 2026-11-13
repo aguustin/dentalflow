@@ -3,11 +3,11 @@ import { DomainEvent } from '../../../../domain/events/domain-event.base';
 interface AppointmentCompletedPayload {
   appointmentId: string;
   organizationId: string;
-  patientId: string;
+  customerId: string;
 }
 
 export class AppointmentCompletedEvent extends DomainEvent<AppointmentCompletedPayload> {
-  constructor(appointmentId: string, organizationId: string, patientId: string) {
-    super('appointment.completed', organizationId, { appointmentId, organizationId, patientId });
+  constructor(appointmentId: string, organizationId: string, customerId: string) {
+    super('appointment.completed', organizationId, { appointmentId, organizationId, customerId });
   }
 }

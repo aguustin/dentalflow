@@ -10,14 +10,14 @@ export class AppointmentOverlapService {
   ) {}
 
   async assertNoOverlap(
-    patientId: string,
+    customerId: string,
     organizationId: string,
     startTime: Date,
     endTime: Date,
     excludeAppointmentId?: string,
   ): Promise<void> {
     const overlapping = await this.appointmentRepository.findOverlapping(
-      patientId,
+      customerId,
       organizationId,
       { startTime, endTime },
       excludeAppointmentId,
@@ -26,7 +26,7 @@ export class AppointmentOverlapService {
     if (overlapping.length > 0) {
       const conflict = overlapping[0];
       throw new ConflictException(
-        `Patient already has an appointment from ` +
+        `Customer already has an appointment from ` +
           `${conflict.timeRange.startTime.toISOString()} to ` +
           `${conflict.timeRange.endTime.toISOString()}`,
       );

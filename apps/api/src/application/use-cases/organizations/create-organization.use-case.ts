@@ -9,6 +9,7 @@ import { OrganizationCreatedEvent } from '../../../domain/events/organization-cr
 import { MembershipCreatedEvent } from '../../../domain/events/membership-created.event';
 import { TOKENS } from '../../../shared/injection-tokens';
 import { hashPassword } from '../../../shared/utils/hash.util';
+import { DEFAULT_VERTICAL, getVertical } from '../../../shared/verticals';
 import { CreateOrganizationDto, OrganizationResponseDto } from '../../dtos/organization.dto';
 
 @Injectable()
@@ -31,6 +32,8 @@ export class CreateOrganizationUseCase {
       id: randomUUID(),
       name: dto.name,
       slug: dto.slug,
+      vertical: DEFAULT_VERTICAL,
+      enabledModules: [...getVertical(DEFAULT_VERTICAL).modules],
     });
 
     // Bootstrap admin role for this organization

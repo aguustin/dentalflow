@@ -23,6 +23,7 @@ import { OwnerAssignedEvent } from '../../domain/events/owner-assigned.event';
 import { OrganizationInitializedEvent } from '../../domain/events/organization-initialized.event';
 import { OnboardingCommand, OnboardingResult } from '../dtos/onboarding.dto';
 import { PlanName } from '../../../billing/domain/entities/plan.entity';
+import { DEFAULT_VERTICAL, getVertical } from '../../../../shared/verticals';
 
 @Injectable()
 export class CreateOrganizationOnboardingUseCase {
@@ -53,11 +54,14 @@ export class CreateOrganizationOnboardingUseCase {
       throw new ConflictException(`Organization slug '${command.slug}' is already taken`);
     }
 
-    // ── Step 2: Create organization ───────────────────────────────────────────
+    // ── Step 2: Create organization from its vertical template ────────────────
+    const vertical = getVertical(command.vertical ?? DEFAULT_VERTICAL);
     const org = await this.orgRepo.create({
       id: randomUUID(),
       name: command.organizationName,
       slug: command.slug,
+      vertical: vertical.key,
+      enabledModules: [...vertical.modules],
     });
     this.logger.log(`Organization created: ${org.slug} (${org.id})`);
 
@@ -98,6 +102,22 @@ export class CreateOrganizationOnboardingUseCase {
       `${allPermissions.length} permissions assigned to admin role in org ${org.slug}`,
     );
 
+    // ── Step 6b: Create the vertical's default roles ──────────────────────────
+    const permissionByKey = new Map(allPermissions.map((p) => [p.key, p]));
+    for (const template of vertical.roles) {
+      const role = await this.roleRepo.create({
+        id: randomUUID(),
+        name: template.name,
+        organizationId: org.id,
+      });
+      await Promise.all(
+        template.permissions
+          .map((key) => permissionByKey.get(key))
+          .filter((p): p is NonNullable<typeof p> => !!p)
+          .map((p) => this.permissionRepo.assignToRole(role.id, p.id)),
+      );
+    }
+
     // ── Step 7: Initialize billing subscription ───────────────────────────────
     const planName = (command.planName ?? 'free') as PlanName;
     const plan = await this.planRepo.findByName(planName);
@@ -133,6 +153,8 @@ export class CreateOrganizationOnboardingUseCase {
         id: org.id,
         name: org.name,
         slug: org.slug,
+        vertical: org.vertical,
+        enabledModules: org.enabledModules,
         isActive: org.isActive,
         createdAt: org.createdAt,
       },

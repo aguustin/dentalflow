@@ -28,7 +28,7 @@ export class CancelAppointmentUseCase {
     const saved = await this.appointmentRepository.save(cancelled);
 
     await this.eventBus.publish(
-      new AppointmentCancelledEvent(id, organizationId, appointment.patientId),
+      new AppointmentCancelledEvent(id, organizationId, appointment.customerId),
     );
 
     return toAppointmentDto(saved);

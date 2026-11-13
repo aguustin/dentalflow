@@ -1,7 +1,7 @@
 import { AppointmentEntity } from '../entities/appointment.entity';
 
 export interface FindAppointmentsOptions {
-  patientId?: string;
+  customerId?: string;
   status?: string;
   startAfter?: Date;
   startBefore?: Date;
@@ -21,7 +21,7 @@ export interface IAppointmentRepository {
     options?: FindAppointmentsOptions,
   ): Promise<{ items: AppointmentEntity[]; total: number }>;
   findOverlapping(
-    patientId: string,
+    customerId: string,
     organizationId: string,
     range: OverlapCheckRange,
     excludeId?: string,

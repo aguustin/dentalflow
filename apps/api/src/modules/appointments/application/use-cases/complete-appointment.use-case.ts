@@ -23,7 +23,7 @@ export class CompleteAppointmentUseCase {
     const saved = await this.appointmentRepository.save(completed);
 
     await this.eventBus.publish(
-      new AppointmentCompletedEvent(id, organizationId, appointment.patientId),
+      new AppointmentCompletedEvent(id, organizationId, appointment.customerId),
     );
 
     return toAppointmentDto(saved);

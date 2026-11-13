@@ -73,7 +73,7 @@ export class RescheduleAppointmentUseCase {
       }
 
       await this.overlapService.assertNoOverlap(
-        appointment.patientId,
+        appointment.customerId,
         organizationId,
         newStart,
         newEnd,
@@ -125,7 +125,7 @@ export class RescheduleAppointmentUseCase {
         new AppointmentRescheduledEvent(
           id,
           organizationId,
-          appointment.patientId,
+          appointment.customerId,
           saved.timeRange.startTime,
           saved.timeRange.endTime,
         ),
