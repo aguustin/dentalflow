@@ -7,6 +7,7 @@ export interface CreateAppointmentProps {
   customerId: string;
   staffId: string;
   resourceId?: string | null;
+  serviceId?: string | null;
   title: string;
   description?: string | null;
   startTime: Date;
@@ -19,6 +20,7 @@ export interface ReconstructAppointmentProps {
   customerId: string;
   staffId: string;
   resourceId: string | null;
+  serviceId: string | null;
   title: string;
   description: string | null;
   timeRange: TimeRange;
@@ -33,6 +35,7 @@ export class AppointmentEntity {
   public readonly customerId: string;
   public readonly staffId: string;
   public readonly resourceId: string | null;
+  public readonly serviceId: string | null;
   public readonly title: string;
   public readonly description: string | null;
   public readonly timeRange: TimeRange;
@@ -46,6 +49,7 @@ export class AppointmentEntity {
     this.customerId = props.customerId;
     this.staffId = props.staffId;
     this.resourceId = props.resourceId;
+    this.serviceId = props.serviceId;
     this.title = props.title;
     this.description = props.description;
     this.timeRange = props.timeRange;
@@ -65,6 +69,7 @@ export class AppointmentEntity {
       customerId: props.customerId,
       staffId: props.staffId,
       resourceId: props.resourceId ?? null,
+      serviceId: props.serviceId ?? null,
       title,
       description: props.description?.trim() || null,
       timeRange: TimeRange.create(props.startTime, props.endTime),
@@ -109,7 +114,11 @@ export class AppointmentEntity {
     return this._applyTransition(AppointmentStatusEnum.NO_SHOW);
   }
 
-  updateDetails(changes: { title?: string; description?: string | null }): AppointmentEntity {
+  updateDetails(changes: {
+    title?: string;
+    description?: string | null;
+    serviceId?: string | null;
+  }): AppointmentEntity {
     if (this.status.isTerminal()) {
       throw new Error(
         `Cannot update appointment details in terminal state: ${this.status.value}`,
@@ -119,6 +128,7 @@ export class AppointmentEntity {
       ...this._snapshot(),
       title: changes.title !== undefined ? changes.title.trim() || this.title : this.title,
       description: changes.description !== undefined ? changes.description : this.description,
+      serviceId: changes.serviceId !== undefined ? changes.serviceId : this.serviceId,
       updatedAt: new Date(),
     });
   }
@@ -151,6 +161,7 @@ export class AppointmentEntity {
       customerId: this.customerId,
       staffId: this.staffId,
       resourceId: this.resourceId,
+      serviceId: this.serviceId,
       title: this.title,
       description: this.description,
       timeRange: this.timeRange,

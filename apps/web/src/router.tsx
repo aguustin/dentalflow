@@ -11,6 +11,12 @@ import { SchedulePage } from './pages/schedule/SchedulePage'
 import { UsersPage } from './pages/users/UsersPage'
 import { StaffPage } from './pages/staff/StaffPage'
 import { StaffFormPage } from './pages/staff/StaffFormPage'
+import { CatalogPage } from './pages/catalog/CatalogPage'
+import { CatalogFormPage } from './pages/catalog/CatalogFormPage'
+import { SalesPage } from './pages/sales/SalesPage'
+import { SaleEditorPage } from './pages/sales/SaleEditorPage'
+import { SaleDetailPage } from './pages/sales/SaleDetailPage'
+import { CashPage } from './pages/sales/CashPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
@@ -77,6 +83,70 @@ export const router = createBrowserRouter([
         element: (
           <ModuleRoute module="scheduling">
             <StaffFormPage key="edit" />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'catalog',
+        element: (
+          <ModuleRoute module="catalog">
+            <CatalogPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'catalog/new',
+        element: (
+          <ModuleRoute module="catalog">
+            <CatalogFormPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'catalog/:id',
+        element: (
+          <ModuleRoute module="catalog">
+            <CatalogFormPage key="edit" />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'sales',
+        element: (
+          <ModuleRoute module="sales">
+            <SalesPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'sales/new',
+        element: (
+          <ModuleRoute module="sales">
+            <SaleEditorPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'sales/:id',
+        element: (
+          <ModuleRoute module="sales">
+            <SaleDetailPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'sales/:id/edit',
+        element: (
+          <ModuleRoute module="sales">
+            <SaleEditorPage key="edit" />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'cash',
+        element: (
+          <ModuleRoute module="sales">
+            <CashPage />
           </ModuleRoute>
         ),
       },

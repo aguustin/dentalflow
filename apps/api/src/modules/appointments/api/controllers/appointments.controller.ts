@@ -65,6 +65,7 @@ export class AppointmentsController {
       customerId: body.customerId,
       staffId: body.staffId,
       resourceId: body.resourceId,
+      serviceId: body.serviceId,
       title: body.title,
       description: body.description,
       startTime: new Date(body.startTime),
@@ -110,6 +111,7 @@ export class AppointmentsController {
     return this.rescheduleAppointment.execute(id, actor.organizationId, {
       staffId: body.staffId,
       resourceId: body.resourceId,
+      serviceId: body.serviceId,
       title: body.title,
       description: body.description,
       startTime: body.startTime ? new Date(body.startTime) : undefined,

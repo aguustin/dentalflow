@@ -99,3 +99,19 @@ label.inline { flex-direction: row; align-items: center; gap: 8px; }
 .slots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; max-height: 120px; overflow-y: auto; }
 .slot { background: none; color: var(--fg); border: 1px solid var(--border); padding: 4px 8px; font-size: 0.85rem; }
 .slot.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.num { text-align: right; white-space: nowrap; }
+.filters { margin: 12px 0; align-items: center; }
+.filters > input { max-width: 280px; }
+input.invalid { border-color: #dc2626; }
+.lines input { width: 100%; min-width: 80px; }
+.lines input.qty { width: 70px; min-width: 0; }
+.narrow-row { max-width: 720px; align-items: flex-start; }
+.narrow-row > * { flex: 1; }
+.picker { display: flex; flex-direction: column; gap: 4px; min-width: 260px; }
+.totals { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; margin-left: auto; }
+.grand-total { font-size: 1.15rem; }
+.summary { display: grid; grid-template-columns: auto auto; gap: 4px 24px; margin: 16px 0; }
+.summary dd { margin: 0; text-align: right; }
+.payment { align-items: flex-end; flex-wrap: wrap; margin-top: 12px; }
+a.secondary-link { background: none; color: var(--fg); border: 1px solid var(--border); }

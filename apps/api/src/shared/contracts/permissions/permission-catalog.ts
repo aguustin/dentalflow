@@ -44,6 +44,16 @@ export const PERMISSION_CATALOG = {
     READ: 'staff.read',
     UPDATE: 'staff.update',
   },
+  CATALOG: {
+    CREATE: 'catalog.create',
+    READ: 'catalog.read',
+    UPDATE: 'catalog.update',
+  },
+  SALES: {
+    CREATE: 'sales.create',
+    READ: 'sales.read',
+    UPDATE: 'sales.update',
+  },
   BILLING: {
     CREATE: 'billing.create',
     READ: 'billing.read',

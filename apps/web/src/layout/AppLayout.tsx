@@ -19,6 +19,8 @@ function Shell() {
   const moduleLabels: Record<ModuleKey, string> = {
     scheduling: 'Agenda',
     customers: terms.customer.plural,
+    catalog: 'Catálogo',
+    sales: 'Ventas',
   }
   // Home module first, then the rest in template order; only enabled ones.
   const modules = [

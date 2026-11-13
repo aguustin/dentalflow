@@ -117,11 +117,22 @@ export class RescheduleAppointmentUseCase {
     }
 
     // 2. Title / description update
-    if (command.title !== undefined || command.description !== undefined) {
+    if (
+      command.title !== undefined ||
+      command.description !== undefined ||
+      command.serviceId !== undefined
+    ) {
+      if (
+        command.serviceId &&
+        !(await this.staffDirectory.isActiveService(command.serviceId, organizationId))
+      ) {
+        throw new NotFoundException(`Service '${command.serviceId}' not found in this organization`);
+      }
       try {
         updated = updated.updateDetails({
           title: command.title,
           description: command.description,
+          serviceId: command.serviceId,
         });
       } catch (err: unknown) {
         throw new BadRequestException(err instanceof Error ? err.message : String(err));

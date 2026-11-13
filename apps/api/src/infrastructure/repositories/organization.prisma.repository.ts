@@ -46,6 +46,8 @@ export class OrganizationPrismaRepository implements IOrganizationRepository {
     vertical: string;
     enabledModules: string[];
     timezone: string;
+    currency: string;
+    taxRateBps: number;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -57,6 +59,8 @@ export class OrganizationPrismaRepository implements IOrganizationRepository {
       vertical: row.vertical,
       enabledModules: row.enabledModules,
       timezone: row.timezone,
+      currency: row.currency,
+      taxRateBps: row.taxRateBps,
       isActive: row.isActive,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,

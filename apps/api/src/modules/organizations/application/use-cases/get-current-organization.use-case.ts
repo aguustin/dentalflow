@@ -30,6 +30,8 @@ export class GetCurrentOrganizationUseCase {
       vertical: toPublicVertical(org.vertical),
       enabledModules: org.enabledModules,
       timezone: org.timezone,
+      currency: org.currency,
+      taxRateBps: org.taxRateBps,
       isActive: org.isActive,
       createdAt: org.createdAt,
       subscription: subscription

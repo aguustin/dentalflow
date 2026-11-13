@@ -50,6 +50,17 @@ describe('Tenant isolation (e2e)', () => {
       })
       .expect(201);
     ids.appointment = appointment.body.id;
+
+    ids.catalogItem = (
+      await a.api().post('/catalog').send({ type: 'PRODUCT', name: 'Cepillo', price: 1000 }).expect(201)
+    ).body.id;
+    ids.sale = (
+      await a
+        .api()
+        .post('/sales')
+        .send({ customerId: ids.customer, items: [{ catalogItemId: ids.catalogItem, quantity: 1 }] })
+        .expect(201)
+    ).body.id;
   });
 
   afterAll(async () => {
@@ -111,6 +122,22 @@ describe('Tenant isolation (e2e)', () => {
     ],
     ['DELETE staff time off', () => b.api().delete(`/staff/${ids.staff}/time-off/${ids.timeOff}`)],
     ['PUT resource', () => b.api().put(`/resources/${ids.resource}`).send({ name: 'Hacked' })],
+    ['GET catalog item', () => b.api().get(`/catalog/${ids.catalogItem}`)],
+    ['PUT catalog item', () => b.api().put(`/catalog/${ids.catalogItem}`).send({ price: 1 })],
+    ['GET sale', () => b.api().get(`/sales/${ids.sale}`)],
+    ['PUT sale', () => b.api().put(`/sales/${ids.sale}`).send({ items: [] })],
+    ['POST sale confirm', () => b.api().post(`/sales/${ids.sale}/confirm`)],
+    ['POST sale void', () => b.api().post(`/sales/${ids.sale}/void`)],
+    ['POST sale payment', () => b.api().post(`/sales/${ids.sale}/payments`).send({ method: 'CASH', amount: 1 })],
+    ['POST sale from foreign appointment', () => b.api().post(`/sales/from-appointment/${ids.appointment}`)],
+    [
+      'POST sale with foreign catalog item',
+      () => b.api().post('/sales').send({ items: [{ catalogItemId: ids.catalogItem, quantity: 1 }] }),
+    ],
+    [
+      'POST sale with foreign customer',
+      () => b.api().post('/sales').send({ customerId: ids.customer, items: [] }),
+    ],
     ['GET availability of foreign staff', () => b.api().get(`/appointments/availability?staffId=${ids.staff}&date=2030-01-10`)],
   ];
 
@@ -128,6 +155,10 @@ describe('Tenant isolation (e2e)', () => {
     expect(appointments.body.items).toHaveLength(0);
     expect(staff.body.map((m: { id: string }) => m.id)).toEqual([ids.staffB]);
     expect(resources.body).toHaveLength(0);
+    const catalog = await b.api().get('/catalog').expect(200);
+    const sales = await b.api().get('/sales').expect(200);
+    expect(catalog.body.items).toHaveLength(0);
+    expect(sales.body.items).toHaveLength(0);
   });
 
   it('resources of org A are intact after the attempts', async () => {
@@ -137,6 +168,10 @@ describe('Tenant isolation (e2e)', () => {
     const staff = await a.api().get(`/staff/${ids.staff}`).expect(200);
     expect(staff.body.name).toBe('Staff A');
     expect(staff.body.upcomingTimeOff).toHaveLength(1);
+    const sale = await a.api().get(`/sales/${ids.sale}`).expect(200);
+    expect(sale.body).toMatchObject({ status: 'DRAFT', total: 1000 });
+    const item = await a.api().get(`/catalog/${ids.catalogItem}`).expect(200);
+    expect(item.body.price).toBe(1000);
   });
 
   describe('onboarding', () => {
@@ -252,7 +287,7 @@ describe('Tenant isolation (e2e)', () => {
       expect(res.body.vertical.key).toBe('dental');
       expect(res.body.vertical.terminology.customer.singular).toBe('Paciente');
       expect(res.body.vertical).not.toHaveProperty('roles');
-      expect(res.body.enabledModules).toEqual(['customers', 'scheduling']);
+      expect(res.body.enabledModules).toEqual(['customers', 'scheduling', 'catalog', 'sales']);
     });
   });
 });

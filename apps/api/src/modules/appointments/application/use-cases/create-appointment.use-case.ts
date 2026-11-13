@@ -50,6 +50,13 @@ export class CreateAppointmentUseCase {
       throw new NotFoundException(`Resource '${command.resourceId}' not found in this organization`);
     }
 
+    if (
+      command.serviceId &&
+      !(await this.staffDirectory.isActiveService(command.serviceId, command.organizationId))
+    ) {
+      throw new NotFoundException(`Service '${command.serviceId}' not found in this organization`);
+    }
+
     const startTime = new Date(command.startTime);
     const endTime = new Date(command.endTime);
 
@@ -72,6 +79,7 @@ export class CreateAppointmentUseCase {
         customerId: command.customerId,
         staffId: command.staffId,
         resourceId: command.resourceId ?? null,
+        serviceId: command.serviceId ?? null,
         title: command.title,
         description: command.description ?? null,
         startTime,

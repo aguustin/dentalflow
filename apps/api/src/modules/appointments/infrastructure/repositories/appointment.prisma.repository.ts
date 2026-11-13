@@ -94,6 +94,7 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
           customerId: entity.customerId,
           staffId: entity.staffId,
           resourceId: entity.resourceId,
+          serviceId: entity.serviceId,
           title: entity.title,
           description: entity.description,
           startTime: entity.timeRange.startTime,
@@ -112,6 +113,7 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
         data: {
           staffId: entity.staffId,
           resourceId: entity.resourceId,
+          serviceId: entity.serviceId,
           title: entity.title,
           description: entity.description,
           startTime: entity.timeRange.startTime,

@@ -5,7 +5,7 @@
  */
 
 /** Feature modules that can be enabled per organization. Add keys only when the module exists. */
-export const MODULE_KEYS = ['customers', 'scheduling'] as const;
+export const MODULE_KEYS = ['customers', 'scheduling', 'catalog', 'sales'] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 export type AttributeFieldType = 'text' | 'number' | 'date' | 'select' | 'boolean';

@@ -7,6 +7,8 @@ import { CurrentOrganization, ModuleKey } from '@dentalflow/types'
 export const MODULE_ROUTES: Record<ModuleKey, string> = {
   scheduling: '/schedule',
   customers: '/customers',
+  catalog: '/catalog',
+  sales: '/sales',
 }
 
 const OrganizationContext = createContext<CurrentOrganization | null>(null)

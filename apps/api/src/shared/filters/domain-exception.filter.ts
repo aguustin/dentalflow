@@ -46,10 +46,10 @@ export class DomainExceptionFilter implements ExceptionFilter {
       }),
     );
 
-    response.status(status).json(
-      typeof body === 'string'
-        ? { statusCode: status, message: body, error: exception.name }
-        : body,
-    );
+    const payload =
+      typeof body === 'string' ? { statusCode: status, message: body, error: exception.name } : body;
+    // Domain error context is client-safe by convention (field errors, ids like saleId)
+    const details = exception instanceof DomainError ? exception.context : undefined;
+    response.status(status).json(details ? { ...(payload as object), details } : payload);
   }
 }

@@ -25,6 +25,9 @@ export class AppointmentResponse {
   @ApiPropertyOptional({ nullable: true })
   resourceId: string | null;
 
+  @ApiPropertyOptional({ nullable: true })
+  serviceId: string | null;
+
   @ApiProperty()
   title: string;
 

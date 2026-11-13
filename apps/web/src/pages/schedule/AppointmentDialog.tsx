@@ -1,6 +1,9 @@
 import { FormEvent, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Appointment, AppointmentStatus, Availability, Resource, StaffMember } from '@dentalflow/types'
+import { useNavigate } from 'react-router-dom'
+import { Appointment, AppointmentStatus, Availability, CatalogItem, Paginated, Resource, StaffMember } from '@dentalflow/types'
+import { ApiError } from '../../lib/api'
+import { useHasModule } from '../../org/OrganizationContext'
 import { api } from '../../lib/api'
 import { formatTime, fromInputs, toDateInput, toTimeInput } from '../../lib/dates'
 import { useTerms } from '../../org/OrganizationContext'
@@ -51,6 +54,15 @@ export function AppointmentDialog({ appointment, defaultStart, defaultStaffId, o
 
   const staff = useActiveStaff()
   const resources = useQuery({ queryKey: ['resources', 'active'], queryFn: () => api<Resource[]>('/resources') })
+  const hasCatalog = useHasModule('catalog')
+  const hasSales = useHasModule('sales')
+  const navigate = useNavigate()
+  const services = useQuery({
+    queryKey: ['catalog', 'services'],
+    queryFn: () => api<Paginated<CatalogItem>>('/catalog?type=SERVICE&limit=200'),
+    enabled: hasCatalog,
+    retry: false,
+  })
 
   const start = appointment ? new Date(appointment.startTime) : (defaultStart ?? new Date())
   const [customer, setCustomer] = useState<PickedCustomer | null>(
@@ -58,6 +70,7 @@ export function AppointmentDialog({ appointment, defaultStart, defaultStaffId, o
   )
   const [staffId, setStaffId] = useState(appointment?.staffId ?? defaultStaffId ?? '')
   const [resourceId, setResourceId] = useState(appointment?.resourceId ?? '')
+  const [serviceId, setServiceId] = useState(appointment?.serviceId ?? '')
   const [date, setDate] = useState(toDateInput(start))
   const [time, setTime] = useState(toTimeInput(start))
   const [duration, setDuration] = useState(appointment?.durationMinutes ?? 30)
@@ -85,6 +98,7 @@ export function AppointmentDialog({ appointment, defaultStart, defaultStaffId, o
       const endTime = new Date(startTime.getTime() + duration * 60_000)
       const body = {
         staffId: effectiveStaffId,
+        serviceId: serviceId || (isNew ? undefined : null),
         title: title.trim(),
         description: description.trim() || (isNew ? undefined : null),
         startTime: startTime.toISOString(),
@@ -110,6 +124,24 @@ export function AppointmentDialog({ appointment, defaultStart, defaultStaffId, o
         : api(`/appointments/${appointment!.id}`, { method: 'PUT', body: { status: action } }),
     onSuccess: done,
   })
+
+  // One sale per appointment: if it already exists, the API says which one
+  const bill = useMutation({
+    mutationFn: () => api<{ id: string }>(`/sales/from-appointment/${appointment!.id}`, { method: 'POST' }),
+    onSuccess: (sale) => navigate(`/sales/${sale.id}`),
+    onError: (err) => {
+      const saleId = err instanceof ApiError ? (err.body as { details?: { saleId?: string } })?.details?.saleId : undefined
+      if (saleId) navigate(`/sales/${saleId}`)
+    },
+  })
+
+  function pickService(id: string) {
+    setServiceId(id)
+    const service = services.data?.items.find((s) => s.id === id)
+    if (!service) return
+    if (service.durationMinutes) setDuration(service.durationMinutes)
+    if (!title.trim()) setTitle(service.name)
+  }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -179,6 +211,20 @@ export function AppointmentDialog({ appointment, defaultStart, defaultStaffId, o
               </label>
             )}
           </div>
+          {hasCatalog && !!services.data?.items.length && (
+            <label>
+              Servicio
+              <select value={serviceId} onChange={(e) => pickService(e.target.value)}>
+                <option value="">—</option>
+                {services.data.items.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {s.durationMinutes ? ` (${s.durationMinutes} min)` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
             Motivo *
             <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
@@ -243,8 +289,16 @@ export function AppointmentDialog({ appointment, defaultStart, defaultStaffId, o
         </fieldset>
 
         {error && <p className="error">{error.message}</p>}
+        {bill.error && !(bill.error instanceof ApiError && bill.error.status === 409) && (
+          <p className="error">{bill.error.message}</p>
+        )}
 
         <div className="actions">
+          {hasSales && appointment?.status === 'COMPLETED' && (
+            <button type="button" onClick={() => bill.mutate()} disabled={bill.isPending}>
+              {bill.isPending ? 'Generando…' : 'Generar venta'}
+            </button>
+          )}
           {!readOnly && (
             <button type="submit" disabled={busy || !customer || !effectiveStaffId}>
               {save.isPending ? 'Guardando…' : 'Guardar'}

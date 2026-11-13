@@ -32,6 +32,12 @@ model Organization {
   enabledModules String[] @default([]) @map("enabled_modules")
   /// IANA time zone; working hours and availability are computed in it
   timezone       String   @default("America/Argentina/Buenos_Aires")
+  /// ISO 4217 currency for catalog prices and sales
+  currency       String   @default("ARS")
+  /// Sales tax in basis points (2100 = 21%), added on top of tax-exclusive prices. 0 = prices are final.
+  taxRateBps     Int      @default(0) @map("tax_rate_bps")
+  /// Last sale number issued (atomic counter for sequential numbering)
+  saleCounter    Int      @default(0) @map("sale_counter")
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -42,6 +48,9 @@ model Organization {
   appointments Appointment[]
   staffMembers StaffMember[]
   resources    Resource[]
+  catalogItems CatalogItem[]
+  sales        Sale[]
+  cashSessions CashSession[]
   subscription Subscription?
 
   @@map("organizations")
@@ -126,6 +135,7 @@ model Customer {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   appointments Appointment[]
+  sales        Sale[]
 
   @@index([organizationId])
   @@index([organizationId, documentId])
@@ -146,6 +156,8 @@ model Appointment {
   customerId     String            @map("customer_id")
   staffId        String            @map("staff_id")
   resourceId     String?           @map("resource_id")
+  /// Optional catalog service booked (sets the default duration; used to bill the appointment)
+  serviceId      String?           @map("service_id")
   title          String
   description    String?
   startTime      DateTime          @map("start_time")
@@ -158,6 +170,8 @@ model Appointment {
   customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
   staff        StaffMember  @relation(fields: [staffId], references: [id])
   resource     Resource?    @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+  service      CatalogItem? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  sale         Sale?
 
   @@index([organizationId])
   @@index([organizationId, customerId])
@@ -186,6 +200,7 @@ model StaffMember {
   workingHours WorkingHours[]
   timeOff      TimeOff[]
   appointments Appointment[]
+  sales        Sale[]
 
   @@index([organizationId])
   @@map("staff_members")
@@ -235,6 +250,149 @@ model Resource {
 
   @@index([organizationId])
   @@map("resources")
+}
+
+// ─── CATALOG & SALES ────────────────────────────────────────────────────────
+
+enum CatalogItemType {
+  SERVICE
+  PRODUCT
+}
+
+model CatalogItem {
+  id              String          @id @default(uuid())
+  organizationId  String          @map("organization_id")
+  type            CatalogItemType
+  name            String
+  sku             String?
+  /// Price in minor units (cents)
+  price           Int
+  /// Services only: default appointment duration
+  durationMinutes Int?            @map("duration_minutes")
+  /// Products only: whether inventory tracks this item (Phase 4)
+  trackStock      Boolean         @default(false) @map("track_stock")
+  attributes      Json            @default("{}")
+  isActive        Boolean         @default(true) @map("is_active")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  saleItems    SaleItem[]
+  appointments Appointment[]
+
+  @@unique([organizationId, sku])
+  @@index([organizationId, type])
+  @@map("catalog_items")
+}
+
+enum SaleStatus {
+  DRAFT
+  CONFIRMED
+  PARTIALLY_PAID
+  PAID
+  VOIDED
+}
+
+model Sale {
+  id             String     @id @default(uuid())
+  organizationId String     @map("organization_id")
+  /// Sequential per organization
+  number         Int
+  customerId     String?    @map("customer_id")
+  staffId        String?    @map("staff_id")
+  appointmentId  String?    @unique @map("appointment_id")
+  status         SaleStatus @default(DRAFT)
+  /// All amounts in minor units (cents)
+  subtotal       Int        @default(0)
+  discountTotal  Int        @default(0) @map("discount_total")
+  globalDiscount Int        @default(0) @map("global_discount")
+  taxRateBps     Int        @default(0) @map("tax_rate_bps")
+  taxTotal       Int        @default(0) @map("tax_total")
+  total          Int        @default(0)
+  paidTotal      Int        @default(0) @map("paid_total")
+  notes          String?
+  confirmedAt    DateTime?  @map("confirmed_at")
+  voidedAt       DateTime?  @map("voided_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  staff        StaffMember? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  appointment  Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  items        SaleItem[]
+  payments     Payment[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, status])
+  @@map("sales")
+}
+
+model SaleItem {
+  id            String  @id @default(uuid())
+  saleId        String  @map("sale_id")
+  catalogItemId String? @map("catalog_item_id")
+  description   String
+  quantity      Int
+  /// Price frozen at sale time (cents)
+  unitPrice     Int     @map("unit_price")
+  /// Line discount (cents)
+  discount      Int     @default(0)
+  total         Int
+  position      Int
+
+  sale        Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  catalogItem CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+
+  @@index([saleId])
+  @@map("sale_items")
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  OTHER
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  saleId        String        @map("sale_id")
+  cashSessionId String?       @map("cash_session_id")
+  method        PaymentMethod
+  amount        Int
+  createdBy     String        @map("created_by")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  sale        Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  cashSession CashSession? @relation(fields: [cashSessionId], references: [id], onDelete: SetNull)
+
+  @@index([saleId])
+  @@index([cashSessionId])
+  @@map("payments")
+}
+
+/// Daily cash register. At most one open session per organization (partial unique index in SQL).
+model CashSession {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  openedBy       String    @map("opened_by")
+  openedAt       DateTime  @default(now()) @map("opened_at")
+  openingAmount  Int       @map("opening_amount")
+  closedBy       String?   @map("closed_by")
+  closedAt       DateTime? @map("closed_at")
+  /// Cash counted at close
+  countedCash    Int?      @map("counted_cash")
+  /// openingAmount + cash payments, computed at close
+  expectedCash   Int?      @map("expected_cash")
+  notes          String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+
+  @@index([organizationId, openedAt])
+  @@map("cash_sessions")
 }
 
 // ─── BILLING ────────────────────────────────────────────────────────────────

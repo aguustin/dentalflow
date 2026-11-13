@@ -8,6 +8,7 @@ interface AppointmentRow {
   customerId: string;
   staffId: string;
   resourceId: string | null;
+  serviceId: string | null;
   title: string;
   description: string | null;
   startTime: Date;
@@ -25,6 +26,7 @@ export class AppointmentMapper {
       customerId: row.customerId,
       staffId: row.staffId,
       resourceId: row.resourceId,
+      serviceId: row.serviceId,
       title: row.title,
       description: row.description,
       timeRange: TimeRange.create(row.startTime, row.endTime),

@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test'
 
 /**
  * Main happy path of the dental vertical:
- * register → agenda → create a patient → create a professional with hours → book an appointment.
+ * register → patient → professional with hours → service in the catalog → book the service →
+ * complete the appointment → bill it → confirm → pay.
  * The only UI test of Phase 1 (see docs/ROADMAP.md, testing strategy).
  */
 test('register, create a patient and book an appointment', async ({ page }) => {
@@ -46,11 +47,22 @@ test('register, create a patient and book an appointment', async ({ page }) => {
   await page.getByRole('button', { name: 'Guardar horario' }).click()
   await expect(page.getByText('Horario guardado ✓')).toBeVisible()
 
+  // ── Service in the catalog (price typed with a thousands separator) ───────
+  await page.getByRole('link', { name: 'Catálogo' }).click()
+  await page.getByRole('link', { name: 'Nuevo ítem' }).click()
+  await page.getByLabel(/^Nombre/).fill('Limpieza dental')
+  await page.getByLabel(/^Precio/).fill('25.000')
+  await page.getByLabel(/^Duración/).fill('45')
+  await page.getByRole('button', { name: 'Guardar' }).click()
+  await expect(page.getByRole('row', { name: /Limpieza dental/ })).toContainText('25.000')
+
   // ── Book appointment today at 10:00 (always inside the visible week) ──────
   await page.getByRole('link', { name: 'Agenda' }).click()
   await page.getByRole('button', { name: 'Nuevo turno', exact: true }).click()
   await page.getByPlaceholder('Buscar por nombre…').fill('Smoke')
   await page.getByRole('button', { name: patient }).click()
+  await page.getByLabel('Servicio').selectOption({ label: 'Limpieza dental (45 min)' })
+  await expect(page.getByLabel('Duración')).toHaveValue('45')
   await page.getByLabel(/^Motivo/).fill('Control anual')
   const today = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -62,4 +74,23 @@ test('register, create a patient and book an appointment', async ({ page }) => {
   await expect(appointment).toBeVisible()
   await expect(appointment).toContainText('Control anual')
   await expect(appointment).toContainText('Dra. Smoke')
+
+  // ── Complete and bill the appointment ──────────────────────────────────────
+  await appointment.click()
+  await page.getByRole('button', { name: 'Marcar confirmado' }).click()
+  await expect(appointment).toContainText('Confirmado')
+  await appointment.click()
+  await page.getByRole('button', { name: 'Marcar completado' }).click()
+  await expect(appointment).toContainText('Completado')
+  await appointment.click()
+  await page.getByRole('button', { name: 'Generar venta' }).click()
+
+  await expect(page.getByRole('heading', { name: /Venta #1/ })).toBeVisible()
+  await expect(page.getByText('Borrador')).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'Limpieza dental' })).toBeVisible()
+  await page.getByRole('button', { name: 'Confirmar venta' }).click()
+  await expect(page.getByText('Pendiente de pago')).toBeVisible()
+  await expect(page.getByLabel('Monto')).toHaveValue('25000')
+  await page.getByRole('button', { name: 'Registrar pago' }).click()
+  await expect(page.getByText('Pagada')).toBeVisible()
 })

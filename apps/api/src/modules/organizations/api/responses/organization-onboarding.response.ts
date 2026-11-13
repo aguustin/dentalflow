@@ -65,6 +65,8 @@ export class CurrentOrganizationResponse {
   vertical: CurrentOrganizationDto['vertical'];
   enabledModules: string[];
   timezone: string;
+  currency: string;
+  taxRateBps: number;
   isActive: boolean;
   createdAt: string;
   subscription: {
@@ -81,6 +83,8 @@ export class CurrentOrganizationResponse {
     res.vertical = dto.vertical;
     res.enabledModules = dto.enabledModules;
     res.timezone = dto.timezone;
+    res.currency = dto.currency;
+    res.taxRateBps = dto.taxRateBps;
     res.isActive = dto.isActive;
     res.createdAt = dto.createdAt.toISOString();
     res.subscription = dto.subscription

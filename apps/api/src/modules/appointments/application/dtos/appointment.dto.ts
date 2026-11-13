@@ -12,6 +12,7 @@ export interface AppointmentDto {
   /** Only present in listings */
   staffColor?: string;
   resourceId: string | null;
+  serviceId: string | null;
   title: string;
   description: string | null;
   startTime: Date;
@@ -27,6 +28,7 @@ export interface CreateAppointmentCommand {
   customerId: string;
   staffId: string;
   resourceId?: string | null;
+  serviceId?: string | null;
   title: string;
   description?: string | null;
   startTime: Date;
@@ -37,6 +39,8 @@ export interface RescheduleAppointmentCommand {
   staffId?: string;
   /** null removes the resource */
   resourceId?: string | null;
+  /** null removes the service */
+  serviceId?: string | null;
   title?: string;
   description?: string | null;
   startTime?: Date;
@@ -68,6 +72,7 @@ export function toAppointmentDto(entity: AppointmentEntity): AppointmentDto {
     customerId: entity.customerId,
     staffId: entity.staffId,
     resourceId: entity.resourceId,
+    serviceId: entity.serviceId,
     title: entity.title,
     description: entity.description,
     startTime: entity.timeRange.startTime,

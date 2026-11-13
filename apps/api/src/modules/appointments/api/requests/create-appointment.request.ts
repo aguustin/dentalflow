@@ -11,6 +11,11 @@ export class CreateAppointmentRequest {
   @IsUUID()
   staffId: string;
 
+  @ApiPropertyOptional({ description: 'Optional catalog service (type SERVICE)' })
+  @IsOptional()
+  @IsUUID()
+  serviceId?: string;
+
   @ApiPropertyOptional({ description: 'Optional bookable resource (chair, room…)' })
   @IsOptional()
   @IsUUID()

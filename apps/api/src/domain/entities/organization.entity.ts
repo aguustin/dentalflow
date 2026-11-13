@@ -8,6 +8,8 @@ export class OrganizationEntity {
     public readonly vertical: string,
     public readonly enabledModules: string[],
     public readonly timezone: string,
+    public readonly currency: string,
+    public readonly taxRateBps: number,
     public readonly isActive: boolean,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
@@ -20,6 +22,8 @@ export class OrganizationEntity {
     vertical: string;
     enabledModules: string[];
     timezone?: string;
+    currency?: string;
+    taxRateBps?: number;
     isActive?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
@@ -31,6 +35,8 @@ export class OrganizationEntity {
       props.vertical,
       props.enabledModules,
       props.timezone ?? DEFAULT_TIMEZONE,
+      props.currency ?? 'ARS',
+      props.taxRateBps ?? 0,
       props.isActive ?? true,
       props.createdAt ?? new Date(),
       props.updatedAt ?? new Date(),

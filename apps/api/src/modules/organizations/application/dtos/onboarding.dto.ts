@@ -61,6 +61,8 @@ export interface CurrentOrganizationDto {
   vertical: PublicVerticalDto;
   enabledModules: string[];
   timezone: string;
+  currency: string;
+  taxRateBps: number;
   isActive: boolean;
   createdAt: Date;
   subscription: {

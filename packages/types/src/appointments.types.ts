@@ -10,6 +10,7 @@ export interface Appointment {
   staffName?: string
   staffColor?: string
   resourceId: string | null
+  serviceId: string | null
   title: string
   description: string | null
   startTime: string

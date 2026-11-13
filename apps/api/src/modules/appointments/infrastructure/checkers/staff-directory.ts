@@ -17,6 +17,13 @@ export class PrismaStaffDirectory implements IStaffDirectory {
     );
   }
 
+  async isActiveService(serviceId: string, organizationId: string): Promise<boolean> {
+    const count = await this.prisma.catalogItem.count({
+      where: { id: serviceId, organizationId, isActive: true, type: 'SERVICE' },
+    });
+    return count > 0;
+  }
+
   async getSchedule(
     staffId: string,
     organizationId: string,

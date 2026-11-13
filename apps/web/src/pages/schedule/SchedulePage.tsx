@@ -23,7 +23,8 @@ async function fetchRange(from: Date, to: Date, staffId: string): Promise<Appoin
   }
 }
 
-type DialogState = { appointment: Appointment } | { defaultStart: Date } | null
+/** Keeps only the id of an open appointment so the dialog always shows its latest data. */
+type DialogState = { appointmentId: string } | { defaultStart: Date } | null
 
 const STAFF_FILTER_KEY = 'df.agendaStaff'
 
@@ -69,6 +70,9 @@ export function SchedulePage() {
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, showCancelled, weekStart])
+
+  const openAppointment =
+    dialog && 'appointmentId' in dialog ? data?.find((a) => a.id === dialog.appointmentId) : undefined
 
   /** New appointment on a given day: next full hour today, 9:00 otherwise */
   function newOn(day: Date) {
@@ -137,7 +141,7 @@ export function SchedulePage() {
                   key={a.id}
                   className={`appt ${a.status}`}
                   style={a.staffColor ? { borderLeftColor: a.staffColor } : undefined}
-                  onClick={() => setDialog({ appointment: a })}
+                  onClick={() => setDialog({ appointmentId: a.id })}
                 >
                   <span className="small">
                     {formatTime(new Date(a.startTime))}–{formatTime(new Date(a.endTime))}
@@ -153,10 +157,10 @@ export function SchedulePage() {
         </div>
       )}
 
-      {dialog && (
+      {dialog && (!('appointmentId' in dialog) || openAppointment) && (
         <AppointmentDialog
-          key={'appointment' in dialog ? dialog.appointment.id : 'new'}
-          appointment={'appointment' in dialog ? dialog.appointment : undefined}
+          key={'appointmentId' in dialog ? dialog.appointmentId : 'new'}
+          appointment={openAppointment}
           defaultStart={'defaultStart' in dialog ? dialog.defaultStart : undefined}
           defaultStaffId={activeFilter || undefined}
           onClose={() => setDialog(null)}

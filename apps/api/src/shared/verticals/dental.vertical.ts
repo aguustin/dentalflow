@@ -3,7 +3,7 @@ import { VerticalTemplate } from './vertical.types';
 export const DENTAL_VERTICAL: VerticalTemplate = {
   key: 'dental',
   label: 'Clínica dental',
-  modules: ['customers', 'scheduling'],
+  modules: ['customers', 'scheduling', 'catalog', 'sales'],
   homeModule: 'scheduling',
   terminology: {
     customer: { singular: 'Paciente', plural: 'Pacientes' },
@@ -29,6 +29,10 @@ export const DENTAL_VERTICAL: VerticalTemplate = {
         'appointments.delete',
         'staff.read',
         'staff.update',
+        'catalog.read',
+        'sales.create',
+        'sales.read',
+        'sales.update',
       ],
     },
     {
@@ -39,6 +43,8 @@ export const DENTAL_VERTICAL: VerticalTemplate = {
         'appointments.read',
         'appointments.update',
         'staff.read',
+        'catalog.read',
+        'sales.read',
       ],
     },
   ],

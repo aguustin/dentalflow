@@ -131,7 +131,14 @@ Hoy los turnos no tienen profesional asignado. Para rubros de servicios, lo impo
 
 ---
 
-### Fase 3 — Catálogo y ventas (núcleo comercial)
+### Fase 3 — Catálogo y ventas (núcleo comercial) ✅ *(completada 2026-11-13)*
+
+> **Resultado:** catálogo (servicios con duración, productos con flag de stock), ventas con numeración correlativa
+> atómica por organización, descuentos por línea y global, impuesto configurable (`Organization.taxRateBps`, hoy
+> sin pantalla de configuración: 0 = precios finales), pagos parciales con bloqueo optimista (no se puede pagar de
+> más ni con pedidos simultáneos), caja diaria (una abierta por org, índice único parcial) y turno completado →
+> venta (una por turno). Moneda por organización (`currency`, default ARS). Anular solo sin pagos; reintegros con
+> las devoluciones de la Fase 7.
 Es el punto donde la tienda de ropa y la clínica comparten código.
 
 | Tarea | Cómo |

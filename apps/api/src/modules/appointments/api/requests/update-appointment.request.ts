@@ -14,6 +14,11 @@ export class UpdateAppointmentRequest {
   @IsUUID()
   staffId?: string;
 
+  @ApiPropertyOptional({ nullable: true, description: 'Change service; null removes it' })
+  @IsOptional()
+  @IsUUID()
+  serviceId?: string | null;
+
   @ApiPropertyOptional({ nullable: true, description: 'Change resource; null removes it' })
   @IsOptional()
   @IsUUID()
