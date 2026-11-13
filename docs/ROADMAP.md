@@ -155,7 +155,14 @@ Sin tests para el CRUD del catálogo.
 
 ---
 
-### Fase 4 — Inventario
+### Fase 4 — Inventario ✅ *(completada 2026-11-13)*
+
+> **Resultado:** ledger de stock compartido (`src/infrastructure/inventory/stock-ledger.ts`) usado por inventario y
+> ventas. Confirmar una venta descuenta stock **en la misma transacción** (no por evento, para que nunca quede una
+> venta confirmada sin su descuento); si falta stock se rechaza con el detalle de faltantes y la venta queda en
+> borrador. Anular repone exactamente lo registrado por la venta. Compras, ajustes por recuento, stock mínimo con
+> aviso en el menú. `CHECK stock_quantity >= 0` como red de seguridad.
+
 | Tarea | Cómo |
 |---|---|
 | Movimientos | Ledger `StockMovement` (entrada, salida, ajuste, devolución) y stock actual en una columna que se actualiza dentro de la misma transacción. Opcionalmente por sucursal o depósito más adelante; **no ahora**. |

@@ -17,6 +17,8 @@ import { SalesPage } from './pages/sales/SalesPage'
 import { SaleEditorPage } from './pages/sales/SaleEditorPage'
 import { SaleDetailPage } from './pages/sales/SaleDetailPage'
 import { CashPage } from './pages/sales/CashPage'
+import { InventoryPage } from './pages/inventory/InventoryPage'
+import { InventoryItemPage } from './pages/inventory/InventoryItemPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
@@ -147,6 +149,22 @@ export const router = createBrowserRouter([
         element: (
           <ModuleRoute module="sales">
             <CashPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'inventory',
+        element: (
+          <ModuleRoute module="inventory">
+            <InventoryPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'inventory/:id',
+        element: (
+          <ModuleRoute module="inventory">
+            <InventoryItemPage />
           </ModuleRoute>
         ),
       },

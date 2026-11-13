@@ -65,10 +65,21 @@ export class SalesService {
     };
   }
 
-  async create(organizationId: string, input: SaleInput, opts: { confirm?: boolean } = {}) {
+  async create(organizationId: string, input: SaleInput, opts: { confirm?: boolean; userId?: string } = {}) {
     const data = await this.build(organizationId, input);
     let sale = await this.repo.create(organizationId, data);
-    if (opts.confirm) sale = await this.confirmRow(sale);
+    // If confirming fails (e.g. no stock) the draft remains, so the user can fix it
+    if (opts.confirm) {
+      try {
+        sale = await this.confirmRow(sale, opts.userId);
+      } catch (err) {
+        // Tell the client which draft was kept so it can open it instead of creating another
+        if (err instanceof DomainError) {
+          throw new DomainError(err.code, err.message, { ...err.context, saleId: sale.id });
+        }
+        throw err;
+      }
+    }
     return toDetail(sale);
   }
 
@@ -80,14 +91,14 @@ export class SalesService {
     return this.get(id, organizationId);
   }
 
-  async confirm(id: string, organizationId: string) {
-    return toDetail(await this.confirmRow(await this.getRow(id, organizationId)));
+  async confirm(id: string, organizationId: string, userId?: string) {
+    return toDetail(await this.confirmRow(await this.getRow(id, organizationId), userId));
   }
 
-  async void(id: string, organizationId: string) {
+  async void(id: string, organizationId: string, userId?: string) {
     const sale = await this.getRow(id, organizationId);
     assertCanVoid(sale.status, sale.paidTotal);
-    if (!(await this.repo.transition(id, sale.status, 'VOIDED', { voidedAt: new Date() }))) {
+    if (!(await this.repo.void(id, organizationId, sale.status, userId))) {
       throw new ConflictException(CHANGED);
     }
     return this.get(id, organizationId);
@@ -156,9 +167,9 @@ export class SalesService {
     return sale;
   }
 
-  private async confirmRow(sale: SaleRow): Promise<SaleRow> {
+  private async confirmRow(sale: SaleRow, userId?: string): Promise<SaleRow> {
     assertCanConfirm(sale.status, sale.items.length);
-    if (!(await this.repo.transition(sale.id, 'DRAFT', 'CONFIRMED', { confirmedAt: new Date() }))) {
+    if (!(await this.repo.confirm(sale.id, sale.organizationId, userId))) {
       throw new ConflictException(CHANGED);
     }
     return this.getRow(sale.id, sale.organizationId);

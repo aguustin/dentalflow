@@ -39,6 +39,8 @@ const CORE_PERMISSIONS = [
   { resource: 'sales', action: 'create' },
   { resource: 'sales', action: 'read' },
   { resource: 'sales', action: 'update' },
+  { resource: 'inventory', action: 'read' },
+  { resource: 'inventory', action: 'update' },
   { resource: 'billing', action: 'create' },
   { resource: 'billing', action: 'read' },
   { resource: 'billing', action: 'update' },
@@ -63,7 +65,7 @@ async function main() {
   // 2. Create demo organization
   const org = await prisma.organization.upsert({
     where: { slug: 'demo-clinic' },
-    create: { name: 'Demo Clinic', slug: 'demo-clinic', vertical: 'dental', enabledModules: ['customers', 'scheduling', 'catalog', 'sales'] },
+    create: { name: 'Demo Clinic', slug: 'demo-clinic', vertical: 'dental', enabledModules: ['customers', 'scheduling', 'catalog', 'sales', 'inventory'] },
     update: {},
   });
   console.log(`✓ Organization: ${org.name} (${org.slug})`);
@@ -91,7 +93,7 @@ async function main() {
     create: { name: 'viewer', organizationId: org.id },
     update: {},
   });
-  const readPermKeys = ['users.read', 'customers.read', 'appointments.read', 'permissions.read', 'staff.read', 'catalog.read', 'sales.read'];
+  const readPermKeys = ['users.read', 'customers.read', 'appointments.read', 'permissions.read', 'staff.read', 'catalog.read', 'sales.read', 'inventory.read'];
   for (const key of readPermKeys) {
     const permId = createdPermissions[key];
     if (permId) {

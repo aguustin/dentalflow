@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ModuleKey } from '@dentalflow/types'
 import { MODULE_ROUTES, OrganizationProvider, useOrganization } from '../org/OrganizationContext'
+import { useLowStockCount } from '../pages/inventory/InventoryPage'
 
 export function AppLayout() {
   return (
@@ -21,7 +22,9 @@ function Shell() {
     customers: terms.customer.plural,
     catalog: 'Catálogo',
     sales: 'Ventas',
+    inventory: 'Inventario',
   }
+  const lowStock = useLowStockCount(org.enabledModules.includes('inventory'))
   // Home module first, then the rest in template order; only enabled ones.
   const modules = [
     org.vertical.homeModule,
@@ -39,6 +42,11 @@ function Shell() {
           {modules.map((m) => (
             <NavLink key={m} to={MODULE_ROUTES[m]}>
               {moduleLabels[m]}
+              {m === 'inventory' && !!lowStock.data?.count && (
+                <span className="nav-badge" title="Productos con stock bajo">
+                  {lowStock.data.count}
+                </span>
+              )}
             </NavLink>
           ))}
           {org.enabledModules.includes('scheduling') && <NavLink to="/staff">{terms.staff.plural}</NavLink>}

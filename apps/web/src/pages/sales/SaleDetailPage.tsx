@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PaymentMethod, SaleDetail } from '@dentalflow/types'
 import { api } from '../../lib/api'
@@ -10,6 +10,8 @@ import { METHOD_LABELS, STATUS_LABELS } from './labels'
 
 export function SaleDetailPage() {
   const { id } = useParams()
+  const location = useLocation()
+  const carriedError = (location.state as { error?: string } | null)?.error
   const money = useMoney()
   const terms = useTerms()
   const queryClient = useQueryClient()
@@ -22,6 +24,7 @@ export function SaleDetailPage() {
     queryClient.setQueryData(['sales', id], updated)
     void queryClient.invalidateQueries({ queryKey: ['sales'], exact: false })
     void queryClient.invalidateQueries({ queryKey: ['cash'] })
+    void queryClient.invalidateQueries({ queryKey: ['inventory'] })
   }
   const confirm = useMutation({ mutationFn: () => api<SaleDetail>(`/sales/${id}/confirm`, { method: 'POST' }), onSuccess: refresh })
   const voidSale = useMutation({ mutationFn: () => api<SaleDetail>(`/sales/${id}/void`, { method: 'POST' }), onSuccess: refresh })
@@ -126,6 +129,9 @@ export function SaleDetailPage() {
         )}
       </div>
       {actionError && <p className="error">{actionError.message}</p>}
+      {!actionError && carriedError && sale.status === 'DRAFT' && (
+        <p className="error">No se pudo confirmar: {carriedError}. La venta quedó guardada como borrador.</p>
+      )}
 
       <div className="section">
         <h2>Pagos</h2>

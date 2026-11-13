@@ -21,6 +21,7 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { SalesModule } from './modules/sales/sales.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { OrganizationOnboardingModule } from './modules/organizations/organizations.module';
 
@@ -64,6 +65,7 @@ import { TenantResolutionMiddleware } from './shared/middleware/tenant-resolutio
     StaffModule,
     CatalogModule,
     SalesModule,
+    InventoryModule,
     BillingModule,
   ],
   providers: [

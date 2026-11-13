@@ -165,7 +165,7 @@ export class SalesController {
   @ApiOperation({ summary: 'Create a sale (draft, or confirmed with confirm=true)' })
   create(@Body() body: CreateSaleRequest, @CurrentUser() actor: RequestUser) {
     const { confirm, ...input } = body;
-    return this.sales.create(actor.organizationId, input, { confirm });
+    return this.sales.create(actor.organizationId, input, { confirm, userId: actor.userId });
   }
 
   @Post('from-appointment/:appointmentId')
@@ -192,7 +192,7 @@ export class SalesController {
   @RequirePermissions('sales.update')
   @HttpCode(HttpStatus.OK)
   confirm(@Param('id') id: string, @CurrentUser() actor: RequestUser) {
-    return this.sales.confirm(id, actor.organizationId);
+    return this.sales.confirm(id, actor.organizationId, actor.userId);
   }
 
   @Post(':id/void')
@@ -200,7 +200,7 @@ export class SalesController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Void a sale without payments' })
   void(@Param('id') id: string, @CurrentUser() actor: RequestUser) {
-    return this.sales.void(id, actor.organizationId);
+    return this.sales.void(id, actor.organizationId, actor.userId);
   }
 
   @Post(':id/payments')

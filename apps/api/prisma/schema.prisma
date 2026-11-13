@@ -48,8 +48,9 @@ model Organization {
   appointments Appointment[]
   staffMembers StaffMember[]
   resources    Resource[]
-  catalogItems CatalogItem[]
-  sales        Sale[]
+  catalogItems   CatalogItem[]
+  sales          Sale[]
+  stockMovements StockMovement[]
   cashSessions CashSession[]
   subscription Subscription?
 
@@ -271,14 +272,19 @@ model CatalogItem {
   durationMinutes Int?            @map("duration_minutes")
   /// Products only: whether inventory tracks this item (Phase 4)
   trackStock      Boolean         @default(false) @map("track_stock")
+  /// Current stock (only meaningful when trackStock). Changed only through the stock ledger.
+  stockQuantity   Int             @default(0) @map("stock_quantity")
+  /// Low-stock alert threshold (null = no alert)
+  minStock        Int?            @map("min_stock")
   attributes      Json            @default("{}")
   isActive        Boolean         @default(true) @map("is_active")
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
 
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  saleItems    SaleItem[]
-  appointments Appointment[]
+  saleItems      SaleItem[]
+  appointments   Appointment[]
+  stockMovements StockMovement[]
 
   @@unique([organizationId, sku])
   @@index([organizationId, type])
@@ -320,8 +326,9 @@ model Sale {
   customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
   staff        StaffMember? @relation(fields: [staffId], references: [id], onDelete: SetNull)
   appointment  Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  items        SaleItem[]
-  payments     Payment[]
+  items          SaleItem[]
+  payments       Payment[]
+  stockMovements StockMovement[]
 
   @@unique([organizationId, number])
   @@index([organizationId, createdAt])
@@ -393,6 +400,37 @@ model CashSession {
 
   @@index([organizationId, openedAt])
   @@map("cash_sessions")
+}
+
+// ─── INVENTORY ──────────────────────────────────────────────────────────────
+
+enum StockMovementType {
+  PURCHASE
+  ADJUSTMENT
+  SALE
+  SALE_VOID
+}
+
+/// Append-only stock ledger. `quantity` is the signed change; `balanceAfter` the resulting stock.
+model StockMovement {
+  id             String            @id @default(uuid())
+  organizationId String            @map("organization_id")
+  catalogItemId  String            @map("catalog_item_id")
+  type           StockMovementType
+  quantity       Int
+  balanceAfter   Int               @map("balance_after")
+  saleId         String?           @map("sale_id")
+  note           String?
+  createdBy      String?           @map("created_by")
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  catalogItem  CatalogItem  @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
+  sale         Sale?        @relation(fields: [saleId], references: [id], onDelete: SetNull)
+
+  @@index([catalogItemId, createdAt])
+  @@index([saleId])
+  @@map("stock_movements")
 }
 
 // ─── BILLING ────────────────────────────────────────────────────────────────

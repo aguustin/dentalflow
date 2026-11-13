@@ -52,8 +52,13 @@ describe('Tenant isolation (e2e)', () => {
     ids.appointment = appointment.body.id;
 
     ids.catalogItem = (
-      await a.api().post('/catalog').send({ type: 'PRODUCT', name: 'Cepillo', price: 1000 }).expect(201)
+      await a
+        .api()
+        .post('/catalog')
+        .send({ type: 'PRODUCT', name: 'Cepillo', price: 1000, trackStock: true })
+        .expect(201)
     ).body.id;
+    await a.api().post(`/inventory/${ids.catalogItem}/purchase`).send({ quantity: 5 }).expect(201);
     ids.sale = (
       await a
         .api()
@@ -138,6 +143,10 @@ describe('Tenant isolation (e2e)', () => {
       'POST sale with foreign customer',
       () => b.api().post('/sales').send({ customerId: ids.customer, items: [] }),
     ],
+    ['GET inventory item', () => b.api().get(`/inventory/${ids.catalogItem}`)],
+    ['POST inventory purchase', () => b.api().post(`/inventory/${ids.catalogItem}/purchase`).send({ quantity: 1 })],
+    ['POST inventory adjust', () => b.api().post(`/inventory/${ids.catalogItem}/adjust`).send({ countedQuantity: 0 })],
+    ['PUT inventory min stock', () => b.api().put(`/inventory/${ids.catalogItem}/min-stock`).send({ minStock: 1 })],
     ['GET availability of foreign staff', () => b.api().get(`/appointments/availability?staffId=${ids.staff}&date=2030-01-10`)],
   ];
 
@@ -159,6 +168,8 @@ describe('Tenant isolation (e2e)', () => {
     const sales = await b.api().get('/sales').expect(200);
     expect(catalog.body.items).toHaveLength(0);
     expect(sales.body.items).toHaveLength(0);
+    const inventory = await b.api().get('/inventory').expect(200);
+    expect(inventory.body).toHaveLength(0);
   });
 
   it('resources of org A are intact after the attempts', async () => {
@@ -172,6 +183,8 @@ describe('Tenant isolation (e2e)', () => {
     expect(sale.body).toMatchObject({ status: 'DRAFT', total: 1000 });
     const item = await a.api().get(`/catalog/${ids.catalogItem}`).expect(200);
     expect(item.body.price).toBe(1000);
+    const stock = await a.api().get(`/inventory/${ids.catalogItem}`).expect(200);
+    expect(stock.body.stockQuantity).toBe(5);
   });
 
   describe('onboarding', () => {
@@ -287,7 +300,7 @@ describe('Tenant isolation (e2e)', () => {
       expect(res.body.vertical.key).toBe('dental');
       expect(res.body.vertical.terminology.customer.singular).toBe('Paciente');
       expect(res.body.vertical).not.toHaveProperty('roles');
-      expect(res.body.enabledModules).toEqual(['customers', 'scheduling', 'catalog', 'sales']);
+      expect(res.body.enabledModules).toEqual(['customers', 'scheduling', 'catalog', 'sales', 'inventory']);
     });
   });
 });

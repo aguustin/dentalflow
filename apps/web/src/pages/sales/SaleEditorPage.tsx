@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CatalogItem, Paginated, SaleDetail } from '@dentalflow/types'
-import { api } from '../../lib/api'
+import { api, ApiError } from '../../lib/api'
 import { useMoney } from '../../lib/money'
 import { useOrganization } from '../../org/OrganizationContext'
 import { CustomerPicker, PickedCustomer } from '../../components/CustomerPicker'
@@ -85,7 +85,16 @@ export function SaleEditorPage() {
     },
     onSuccess: (sale) => {
       void queryClient.invalidateQueries({ queryKey: ['sales'] })
+      void queryClient.invalidateQueries({ queryKey: ['inventory'] })
       navigate(`/sales/${sale.id}`)
+    },
+    onError: (err) => {
+      // Create+confirm failed after the draft was saved: open that draft instead of losing it
+      const saleId = err instanceof ApiError ? (err.body as { details?: { saleId?: string } })?.details?.saleId : undefined
+      if (saleId) {
+        void queryClient.invalidateQueries({ queryKey: ['sales'] })
+        navigate(`/sales/${saleId}`, { state: { error: err.message } })
+      }
     },
   })
 

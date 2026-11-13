@@ -115,3 +115,10 @@ input.invalid { border-color: #dc2626; }
 .summary dd { margin: 0; text-align: right; }
 .payment { align-items: flex-end; flex-wrap: wrap; margin-top: 12px; }
 a.secondary-link { background: none; color: var(--fg); border: 1px solid var(--border); }
+
+.nav-badge { background: #dc2626; color: #fff; border-radius: 999px; font-size: 0.75rem; padding: 0 6px; margin-left: 6px; }
+.badge.low { border-color: #dc2626; color: #dc2626; margin-left: 8px; }
+.stock-now { font-size: 1.1rem; }
+.stock-forms { align-items: stretch; flex-wrap: wrap; margin: 16px 0; }
+.stock-forms .card { max-width: 260px; }
+.stock-forms h2 { font-size: 1rem; margin: 0; }

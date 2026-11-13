@@ -9,6 +9,7 @@ export const MODULE_ROUTES: Record<ModuleKey, string> = {
   customers: '/customers',
   catalog: '/catalog',
   sales: '/sales',
+  inventory: '/inventory',
 }
 
 const OrganizationContext = createContext<CurrentOrganization | null>(null)

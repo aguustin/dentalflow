@@ -1,6 +1,6 @@
 /** Organization and business vertical (template) as returned by GET /organizations/current. */
 
-export type ModuleKey = 'customers' | 'scheduling' | 'catalog' | 'sales'
+export type ModuleKey = 'customers' | 'scheduling' | 'catalog' | 'sales' | 'inventory'
 
 export interface Terminology {
   singular: string

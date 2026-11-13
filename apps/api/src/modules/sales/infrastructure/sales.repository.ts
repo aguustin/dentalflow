@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PaymentMethod, Prisma, SaleStatus } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
+import { restoreStockForSale, takeStockForSale } from '../../../infrastructure/inventory/stock-ledger';
 
 export interface SaleLineData {
   catalogItemId: string | null;
@@ -103,18 +104,43 @@ export class SalesRepository {
     });
   }
 
-  /** Status change guarded by the expected current status (and no payments for voids). */
-  async transition(
-    id: string,
-    from: SaleStatus,
-    to: SaleStatus,
-    extra: Prisma.SaleUpdateManyMutationInput = {},
-  ): Promise<boolean> {
-    const { count } = await this.prisma.sale.updateMany({
-      where: { id, status: from, ...(to === 'VOIDED' && { paidTotal: 0 }) },
-      data: { status: to, ...extra },
+  /**
+   * DRAFT → CONFIRMED and take stock, atomically. Returns false if it was no longer a draft;
+   * throws (rolling everything back) if there isn't enough stock.
+   */
+  confirm(id: string, organizationId: string, userId?: string): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.sale.updateMany({
+        where: { id, organizationId, status: 'DRAFT' },
+        data: { status: 'CONFIRMED', confirmedAt: new Date() },
+      });
+      if (count === 0) return false;
+      const items = await tx.saleItem.findMany({
+        where: { saleId: id, catalogItemId: { not: null } },
+        select: { catalogItemId: true, quantity: true },
+      });
+      await takeStockForSale(
+        tx,
+        organizationId,
+        id,
+        items.map((i) => ({ catalogItemId: i.catalogItemId!, quantity: i.quantity })),
+        userId,
+      );
+      return true;
     });
-    return count > 0;
+  }
+
+  /** Voids a sale without payments and gives back any stock it took, atomically. */
+  void(id: string, organizationId: string, from: SaleStatus, userId?: string): Promise<boolean> {
+    return this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.sale.updateMany({
+        where: { id, organizationId, status: from, paidTotal: 0 },
+        data: { status: 'VOIDED', voidedAt: new Date() },
+      });
+      if (count === 0) return false;
+      await restoreStockForSale(tx, organizationId, id, userId);
+      return true;
+    });
   }
 
   /**
