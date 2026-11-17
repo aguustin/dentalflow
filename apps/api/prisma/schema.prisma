@@ -284,6 +284,8 @@ model CatalogItem {
   trackStock      Boolean         @default(false) @map("track_stock")
   /// Current stock (only meaningful when trackStock). Changed only through the stock ledger.
   stockQuantity   Int             @default(0) @map("stock_quantity")
+  /// Units held for approved work orders. Available = stockQuantity - reservedQuantity.
+  reservedQuantity Int            @default(0) @map("reserved_quantity")
   /// Low-stock alert threshold (null = no alert)
   minStock        Int?            @map("min_stock")
   attributes      Json            @default("{}")
@@ -297,6 +299,7 @@ model CatalogItem {
   stockMovements StockMovement[]
   treatmentItems TreatmentPlanItem[]
   workOrderItems WorkOrderItem[]
+  reservations   StockReservation[]
 
   @@unique([organizationId, sku])
   @@index([organizationId, type])
@@ -342,6 +345,7 @@ model Sale {
   payments       Payment[]
   stockMovements StockMovement[]
   treatmentItems TreatmentPlanItem[]
+  workOrder      WorkOrder?
 
   @@unique([organizationId, number])
   @@index([organizationId, createdAt])
@@ -619,14 +623,18 @@ model WorkOrder {
   reportedIssue  String          @map("reported_issue")
   diagnosis      String?
   notes          String?
+  /// Sale created on delivery (one per order)
+  saleId         String?         @unique @map("sale_id")
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
 
-  customer Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  asset    Asset?             @relation(fields: [assetId], references: [id], onDelete: SetNull)
-  staff    StaffMember?       @relation(fields: [staffId], references: [id], onDelete: SetNull)
-  items    WorkOrderItem[]
-  events   WorkOrderEvent[]
+  customer     Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  asset        Asset?             @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  staff        StaffMember?       @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  sale         Sale?              @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  items        WorkOrderItem[]
+  events       WorkOrderEvent[]
+  reservations StockReservation[]
 
   @@unique([organizationId, number])
   @@index([organizationId, status])
@@ -649,6 +657,23 @@ model WorkOrderItem {
 
   @@index([workOrderId])
   @@map("work_order_items")
+}
+
+/// Stock held for an approved work order, per product. Released on cancel, consumed on delivery.
+model StockReservation {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  workOrderId    String   @map("work_order_id")
+  catalogItemId  String   @map("catalog_item_id")
+  quantity       Int
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  workOrder   WorkOrder   @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  catalogItem CatalogItem @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
+
+  @@unique([workOrderId, catalogItemId])
+  @@index([catalogItemId])
+  @@map("stock_reservations")
 }
 
 /// Status history (who/when/why), append-only.

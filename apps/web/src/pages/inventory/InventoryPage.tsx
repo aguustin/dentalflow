@@ -63,6 +63,8 @@ export function InventoryPage() {
               <th>Producto</th>
               <th>SKU</th>
               <th className="num">Stock</th>
+              <th className="num">Reservado</th>
+              <th className="num">Disponible</th>
               <th className="num">Mínimo</th>
             </tr>
           </thead>
@@ -75,6 +77,8 @@ export function InventoryPage() {
                 </td>
                 <td>{i.sku ?? '—'}</td>
                 <td className="num">{i.stockQuantity}</td>
+                <td className="num">{i.reservedQuantity || '—'}</td>
+                <td className="num">{i.available}</td>
                 <td className="num">{i.minStock ?? '—'}</td>
               </tr>
             ))}

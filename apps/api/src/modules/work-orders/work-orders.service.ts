@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, WorkOrderStatus } from '@prisma/client';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
+import { consumeReservations, releaseReservations, reserveStock } from '../../infrastructure/inventory/stock-ledger';
+import { createDraftSale } from '../../infrastructure/sales/draft-sale';
 import { DomainError } from '../../shared/contracts/errors/domain.error';
 import { computeSaleTotals } from '../../shared/sales/sale-totals';
 import {
@@ -28,6 +30,8 @@ const detailInclude = {
     include: { catalogItem: { select: { type: true } } },
   },
   events: { orderBy: { createdAt: 'asc' } },
+  sale: { select: { id: true, number: true, status: true } },
+  reservations: { select: { catalogItemId: true, quantity: true } },
 } satisfies Prisma.WorkOrderInclude;
 
 type DetailRow = Prisma.WorkOrderGetPayload<{ include: typeof detailInclude }>;
@@ -169,17 +173,54 @@ export class WorkOrdersService {
     assertTransition(order.status, to, { itemCount: order.items.length, note });
     const userName = await this.userName(userId);
 
+    // Status change, stock effects and history commit (or roll back) together
     await this.prisma.$transaction(async (tx) => {
       const { count } = await tx.workOrder.updateMany({
         where: { id, status: order.status },
         data: { status: to },
       });
       if (count === 0) throw new DomainError('CONFLICT', CHANGED);
+
+      if (to === 'APPROVED') {
+        // Hold the parts: available stock goes down for everyone else (counter sales included)
+        await reserveStock(
+          tx,
+          organizationId,
+          id,
+          order.items.flatMap((i) => (i.catalogItemId ? [{ catalogItemId: i.catalogItemId, quantity: i.quantity }] : [])),
+        );
+      } else if (to === 'CANCELLED') {
+        await releaseReservations(tx, organizationId, id);
+      } else if (to === 'DELIVERED' && order.status === 'READY') {
+        await this.bill(tx, order, organizationId, userId);
+      }
+
       await tx.workOrderEvent.create({
         data: { workOrderId: id, fromStatus: order.status, toStatus: to, note: note?.trim() || null, userId, userName },
       });
     });
     return this.get(id, organizationId);
+  }
+
+  /**
+   * Delivery of a repaired order: a confirmed sale with the quote lines; the reserved parts
+   * become real consumption of that sale. `saleId` is unique, so an order is billed once.
+   */
+  private async bill(tx: Prisma.TransactionClient, order: DetailRow, organizationId: string, userId: string) {
+    const sale = await createDraftSale(tx, organizationId, {
+      customerId: order.customerId,
+      staffId: order.staffId,
+      notes: `Orden de trabajo #${order.number}${order.asset ? ` · ${order.asset.label}` : ''}`,
+      lines: order.items.map((i) => ({
+        catalogItemId: i.catalogItemId,
+        description: i.description,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+      })),
+    });
+    await tx.sale.update({ where: { id: sale.id }, data: { status: 'CONFIRMED', confirmedAt: new Date() } });
+    await consumeReservations(tx, organizationId, order.id, sale.id, userId);
+    await tx.workOrder.update({ where: { id: order.id }, data: { saleId: sale.id } });
   }
 
   // ── helpers ──────────────────────────────────────────────────────────────
@@ -219,6 +260,8 @@ export class WorkOrdersService {
         total: totals.lines[idx].total,
       })),
       totals: { subtotal: totals.subtotal, taxRateBps, taxTotal: totals.taxTotal, total: totals.total },
+      sale: w.sale,
+      reservations: w.reservations,
       events: w.events.map((e) => ({
         id: e.id,
         fromStatus: e.fromStatus,

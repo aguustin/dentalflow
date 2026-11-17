@@ -8,16 +8,18 @@ const productSelect = {
   name: true,
   sku: true,
   stockQuantity: true,
+  reservedQuantity: true,
   minStock: true,
   isActive: true,
 } satisfies Prisma.CatalogItemSelect;
 
 type ProductRow = Prisma.CatalogItemGetPayload<{ select: typeof productSelect }>;
 
-const withAlert = (p: ProductRow) => ({
-  ...p,
-  isLow: p.minStock !== null && p.stockQuantity <= p.minStock,
-});
+/** Low-stock alert looks at AVAILABLE units (stock minus what work orders reserved). */
+const withAlert = (p: ProductRow) => {
+  const available = p.stockQuantity - p.reservedQuantity;
+  return { ...p, available, isLow: p.minStock !== null && available <= p.minStock };
+};
 
 /** Stock of products with trackStock. All changes go through the shared stock ledger. */
 @Injectable()
@@ -49,7 +51,7 @@ export class InventoryService {
     const [row] = await this.prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*)::bigint AS count FROM "catalog_items"
       WHERE "organization_id" = ${organizationId} AND "track_stock" AND "is_active"
-        AND "min_stock" IS NOT NULL AND "stock_quantity" <= "min_stock"`;
+        AND "min_stock" IS NOT NULL AND "stock_quantity" - "reserved_quantity" <= "min_stock"`;
     return { count: Number(row?.count ?? 0) };
   }
 

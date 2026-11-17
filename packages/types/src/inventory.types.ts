@@ -7,6 +7,10 @@ export interface InventoryItem {
   name: string
   sku: string | null
   stockQuantity: number
+  /** Held by approved work orders */
+  reservedQuantity: number
+  /** stockQuantity - reservedQuantity */
+  available: number
   minStock: number | null
   isActive: boolean
   isLow: boolean

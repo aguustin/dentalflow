@@ -202,7 +202,7 @@ Sin tests para el odontograma ni la historia clínica (son CRUD).
 
 ---
 
-### Fase 6 — Órdenes de trabajo (Servicio técnico / Mecánica) 🟡 *(entrega A completada 2026-11-17)*
+### Fase 6 — Órdenes de trabajo (Servicio técnico / Mecánica) ✅ *(entregas A y B completadas 2026-11-17)*
 
 > **Entrega A:** rubros `repair_mechanic` (Taller mecánico) y `repair_tech` (Servicio técnico) con su vocabulario,
 > campos de equipo (`assetAttributes`) y roles (`reception`, `technician`). Equipos del cliente (`Asset`) con historial
@@ -210,7 +210,11 @@ Sin tests para el odontograma ni la historia clínica (son CRUD).
 > aprobado → en reparación → listo → entregado; rechazado/cancelado con motivo obligatorio), ítems editables solo
 > antes de presupuestar, historial de estados con autor, y tablero como pantalla principal. Profesionales
 > disponibles con agenda **o** con órdenes (`@RequireModule` acepta alternativas).
-> **Entrega B pendiente:** reserva de stock al aprobar, entrega → venta, presupuesto imprimible.
+> **Entrega B (2026-11-17):** reservas de stock por orden (`StockReservation` + `reservedQuantity`; disponible =
+> stock − reservado, respetado por ventas de mostrador, ajustes y alertas). Aprobar reserva los repuestos (si falta
+> stock no se aprueba y se informa el faltante); cancelar libera; entregar crea una venta confirmada y convierte la
+> reserva en movimientos de venta, todo en la misma transacción (una venta por orden: `WorkOrder.saleId` único).
+> Anular esa venta repone el stock por el camino normal. Presupuesto imprimible (`/work-orders/:id/print`).
 Segundo rubro: valida que la arquitectura sirve. Si esta fase requiere tocar mucho el núcleo, hay que revisar la Fase 0.
 El bloque es genérico: sirve después para cerrajería, electricistas, electrodomésticos, etc.
 

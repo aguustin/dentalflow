@@ -8,9 +8,12 @@ import { DomainError } from '../../shared/contracts/errors/domain.error';
  * back together with the business operation (e.g. confirming a sale). Stock only changes here,
  * and every change is recorded as a StockMovement with the resulting balance.
  *
- * Concurrency: decrements are conditional atomic updates (`stock >= qty`); rows are touched in
- * a stable order (by id) so concurrent sales can't deadlock. A CHECK constraint (stock >= 0)
- * is the final safety net.
+ * Available stock = stock_quantity - reserved_quantity. Reserved units belong to approved
+ * work orders: counter sales and adjustments can't take them.
+ *
+ * Concurrency: changes are conditional atomic updates (`available >= qty`); rows are touched in
+ * a stable order (by id) so concurrent operations can't deadlock. CHECK constraints
+ * (stock >= 0, 0 <= reserved <= stock) are the final safety net.
  */
 
 type Tx = Prisma.TransactionClient;
@@ -53,7 +56,7 @@ export async function takeStockForSale(
     const updated = await tx.$queryRaw<{ stock_quantity: number }[]>`
       UPDATE "catalog_items" SET "stock_quantity" = "stock_quantity" - ${line.quantity}
       WHERE "id" = ${line.catalogItemId} AND "organization_id" = ${organizationId}
-        AND "track_stock" = true AND "stock_quantity" >= ${line.quantity}
+        AND "track_stock" = true AND "stock_quantity" - "reserved_quantity" >= ${line.quantity}
       RETURNING "stock_quantity"`;
 
     if (updated.length === 1) {
@@ -74,13 +77,13 @@ export async function takeStockForSale(
     // Not updated: either the item doesn't track stock (fine) or there isn't enough.
     const item = await tx.catalogItem.findFirst({
       where: { id: line.catalogItemId, organizationId },
-      select: { name: true, trackStock: true, stockQuantity: true },
+      select: { name: true, trackStock: true, stockQuantity: true, reservedQuantity: true },
     });
     if (item?.trackStock) {
       shortages.push({
         catalogItemId: line.catalogItemId,
         name: item.name,
-        available: item.stockQuantity,
+        available: item.stockQuantity - item.reservedQuantity,
         requested: line.quantity,
       });
     }
@@ -136,8 +139,8 @@ export async function recordStockChange(
   meta: { note?: string | null; userId?: string },
 ) {
   // Row lock: serializes concurrent changes to the same item
-  const [current] = await tx.$queryRaw<{ stock_quantity: number; track_stock: boolean }[]>`
-    SELECT "stock_quantity", "track_stock" FROM "catalog_items"
+  const [current] = await tx.$queryRaw<{ stock_quantity: number; reserved_quantity: number; track_stock: boolean }[]>`
+    SELECT "stock_quantity", "reserved_quantity", "track_stock" FROM "catalog_items"
     WHERE "id" = ${catalogItemId} AND "organization_id" = ${organizationId}
     FOR UPDATE`;
   if (!current) throw new DomainError('NOT_FOUND', 'Product not found');
@@ -148,6 +151,12 @@ export async function recordStockChange(
   const delta = balanceAfter - current.stock_quantity;
   if (change.type === 'ADJUSTMENT' && delta === 0) {
     throw new DomainError('INVALID', 'The counted quantity equals the current stock');
+  }
+  if (balanceAfter < current.reserved_quantity) {
+    throw new DomainError(
+      'INVALID',
+      `Stock can't be lower than the ${current.reserved_quantity} units reserved for work orders`,
+    );
   }
 
   await tx.catalogItem.update({ where: { id: catalogItemId }, data: { stockQuantity: balanceAfter } });
@@ -162,4 +171,101 @@ export async function recordStockChange(
       createdBy: meta.userId ?? null,
     },
   });
+}
+
+// ── Work order reservations ─────────────────────────────────────────────────
+
+/**
+ * Holds stock for an approved work order (only items with trackStock).
+ * Throws DomainError CONFLICT listing every shortage (the transaction must roll back).
+ */
+export async function reserveStock(
+  tx: Tx,
+  organizationId: string,
+  workOrderId: string,
+  lines: StockLine[],
+): Promise<void> {
+  const shortages: Shortage[] = [];
+  for (const line of aggregate(lines)) {
+    const updated = await tx.$queryRaw<{ id: string }[]>`
+      UPDATE "catalog_items" SET "reserved_quantity" = "reserved_quantity" + ${line.quantity}
+      WHERE "id" = ${line.catalogItemId} AND "organization_id" = ${organizationId}
+        AND "track_stock" = true AND "stock_quantity" - "reserved_quantity" >= ${line.quantity}
+      RETURNING "id"`;
+    if (updated.length === 1) {
+      await tx.stockReservation.create({
+        data: { organizationId, workOrderId, catalogItemId: line.catalogItemId, quantity: line.quantity },
+      });
+      continue;
+    }
+    const item = await tx.catalogItem.findFirst({
+      where: { id: line.catalogItemId, organizationId },
+      select: { name: true, trackStock: true, stockQuantity: true, reservedQuantity: true },
+    });
+    if (item?.trackStock) {
+      shortages.push({
+        catalogItemId: line.catalogItemId,
+        name: item.name,
+        available: item.stockQuantity - item.reservedQuantity,
+        requested: line.quantity,
+      });
+    }
+  }
+  if (shortages.length > 0) {
+    const list = shortages.map((s) => `${s.name} (available ${s.available}, requested ${s.requested})`);
+    throw new DomainError('CONFLICT', `Insufficient stock to reserve: ${list.join('; ')}`, { shortages });
+  }
+}
+
+/** Gives back the stock held by a work order (cancelled). Based on its reservation rows. */
+export async function releaseReservations(tx: Tx, organizationId: string, workOrderId: string): Promise<void> {
+  const reservations = await tx.stockReservation.findMany({
+    where: { workOrderId, organizationId },
+    orderBy: { catalogItemId: 'asc' },
+  });
+  for (const r of reservations) {
+    await tx.$executeRaw`
+      UPDATE "catalog_items" SET "reserved_quantity" = "reserved_quantity" - ${r.quantity}
+      WHERE "id" = ${r.catalogItemId}`;
+  }
+  await tx.stockReservation.deleteMany({ where: { workOrderId } });
+}
+
+/**
+ * Turns a work order's reservations into real consumption for its sale (delivery):
+ * stock and reserved both go down, recorded as SALE movements of that sale (so voiding
+ * the sale later gives the stock back with the regular sale-void path).
+ */
+export async function consumeReservations(
+  tx: Tx,
+  organizationId: string,
+  workOrderId: string,
+  saleId: string,
+  userId?: string,
+): Promise<void> {
+  const reservations = await tx.stockReservation.findMany({
+    where: { workOrderId, organizationId },
+    orderBy: { catalogItemId: 'asc' },
+  });
+  for (const r of reservations) {
+    const [row] = await tx.$queryRaw<{ stock_quantity: number }[]>`
+      UPDATE "catalog_items"
+      SET "stock_quantity" = "stock_quantity" - ${r.quantity}, "reserved_quantity" = "reserved_quantity" - ${r.quantity}
+      WHERE "id" = ${r.catalogItemId}
+      RETURNING "stock_quantity"`;
+    if (!row) continue;
+    await tx.stockMovement.create({
+      data: {
+        organizationId,
+        catalogItemId: r.catalogItemId,
+        type: StockMovementType.SALE,
+        quantity: -r.quantity,
+        balanceAfter: row.stock_quantity,
+        saleId,
+        note: 'Entrega de orden de trabajo',
+        createdBy: userId ?? null,
+      },
+    });
+  }
+  await tx.stockReservation.deleteMany({ where: { workOrderId } });
 }

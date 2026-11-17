@@ -24,6 +24,7 @@ import { WorkOrdersBoard } from './pages/work-orders/WorkOrdersBoard'
 import { WorkOrderNewPage } from './pages/work-orders/WorkOrderNewPage'
 import { WorkOrderDetailPage } from './pages/work-orders/WorkOrderDetailPage'
 import { AssetPage } from './pages/work-orders/AssetPage'
+import { WorkOrderPrintPage } from './pages/work-orders/WorkOrderPrintPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
@@ -202,6 +203,14 @@ export const router = createBrowserRouter([
         element: (
           <ModuleRoute module="work_orders">
             <WorkOrderDetailPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'work-orders/:id/print',
+        element: (
+          <ModuleRoute module="work_orders">
+            <WorkOrderPrintPage />
           </ModuleRoute>
         ),
       },

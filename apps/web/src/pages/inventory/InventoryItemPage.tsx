@@ -72,6 +72,12 @@ export function InventoryItemPage() {
       </div>
       <p className="stock-now">
         Stock actual: <strong>{item.stockQuantity}</strong>
+        {item.reservedQuantity > 0 && (
+          <span>
+            {' '}
+            · reservado para órdenes: <strong>{item.reservedQuantity}</strong> · disponible: <strong>{item.available}</strong>
+          </span>
+        )}
         {item.minStock !== null && <span className="muted"> · mínimo {item.minStock}</span>}
       </p>
 

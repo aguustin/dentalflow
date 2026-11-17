@@ -56,8 +56,27 @@ export function WorkOrderDetailPage() {
         <h1>
           {terms.workOrder?.singular ?? 'Orden'} #{order.number}
         </h1>
-        <span className={`badge wo-${order.status}`}>{WO_STATUS_LABELS[order.status]}</span>
+        <div className="actions">
+          {order.items.length > 0 && (
+            <Link className="button secondary-link" to={`/work-orders/${order.id}/print`}>
+              Imprimir presupuesto
+            </Link>
+          )}
+          <span className={`badge wo-${order.status}`}>{WO_STATUS_LABELS[order.status]}</span>
+        </div>
       </div>
+      {order.sale && (
+        <p className="alert-ok">
+          Facturada en la <Link to={`/sales/${order.sale.id}`}>venta #{order.sale.number}</Link>
+          {order.sale.status === 'CONFIRMED' && ' — pendiente de cobro'}
+        </p>
+      )}
+      {order.reservations.length > 0 && (
+        <p className="muted small">
+          Repuestos reservados: {order.reservations.reduce((n, r) => n + r.quantity, 0)} unidad(es). Se descuentan del stock al
+          entregar y se liberan si se cancela.
+        </p>
+      )}
       <p>
         {terms.customer.singular}: <Link to={`/customers/${order.customer.id}`}>{order.customer.name}</Link>
         {order.customer.phone && <span className="muted"> · {order.customer.phone}</span>}

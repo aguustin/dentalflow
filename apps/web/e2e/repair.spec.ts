@@ -64,6 +64,7 @@ test('mechanic shop: intake, quote and deliver a work order', async ({ page }) =
 
   await expect(page.getByRole('heading', { name: /Orden de trabajo #1/ })).toBeVisible()
   await expect(page.locator('.badge')).toHaveText('Recibido')
+  await expect(page.getByRole('link', { name: 'Imprimir presupuesto' })).toHaveCount(0) // nothing to quote yet
 
   // ── Diagnose and quote ─────────────────────────────────────────────────────
   await page.getByRole('button', { name: 'Pasar a diagnóstico' }).click()
@@ -84,6 +85,12 @@ test('mechanic shop: intake, quote and deliver a work order', async ({ page }) =
     await expect(page.getByRole('button', { name: step })).toHaveCount(0)
   }
   await expect(page.locator('.badge')).toHaveText('Entregado')
+  // Delivery billed the order: the sale is linked and pending collection
+  await expect(page.getByText(/Facturada en la venta #1/)).toBeVisible()
+  await page.getByRole('link', { name: 'venta #1' }).click()
+  await expect(page.getByText('Pendiente de pago')).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'Filtro de aceite' })).toBeVisible()
+  await page.goBack()
   await expect(page.locator('.notes li')).toHaveCount(7) // full history
   await page.screenshot({ path: 'test-results/work-order.png', fullPage: true })
 })

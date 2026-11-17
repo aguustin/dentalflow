@@ -73,5 +73,9 @@ export interface WorkOrderDetail {
   updatedAt: string
   items: WorkOrderItem[]
   totals: { subtotal: number; taxRateBps: number; taxTotal: number; total: number }
+  /** Sale created on delivery */
+  sale: { id: string; number: number; status: string } | null
+  /** Parts held while the order is approved/in progress */
+  reservations: { catalogItemId: string; quantity: number }[]
   events: WorkOrderEvent[]
 }
