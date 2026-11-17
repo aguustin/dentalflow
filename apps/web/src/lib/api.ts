@@ -84,12 +84,16 @@ export function refreshSession(): Promise<boolean> {
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  /** JSON body */
   body?: unknown
+  /** Multipart body (file uploads). The browser sets the Content-Type boundary. */
+  form?: FormData
   /** Skip the Authorization header and the refresh-on-401 logic (login, register). */
   anonymous?: boolean
 }
 
-export async function api<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
+/** Sends with auth; on 401 refreshes the session once and retries. */
+async function request(path: string, options: RequestOptions): Promise<Response> {
   const send = () =>
     fetch(`${BASE}${path}`, {
       method: options.method ?? 'GET',
@@ -97,18 +101,32 @@ export async function api<T = unknown>(path: string, options: RequestOptions = {
         ...(options.body !== undefined && { 'Content-Type': 'application/json' }),
         ...(!options.anonymous && accessToken && { Authorization: `Bearer ${accessToken}` }),
       },
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      body: options.form ?? (options.body !== undefined ? JSON.stringify(options.body) : undefined),
     })
 
   let res = await send()
   if (res.status === 401 && !options.anonymous && (await refreshSession())) {
     res = await send()
   }
+  return res
+}
 
+export async function api<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
+  const res = await request(path, options)
   if (res.status === 204) return undefined as T
   const data = await res.json().catch(() => undefined)
   if (!res.ok) throw new ApiError(res.status, errorMessage(data, res.status), data)
   return data as T
+}
+
+/** Downloads a protected file (e.g. a clinical attachment) as a Blob, with the session token. */
+export async function apiBlob(path: string): Promise<Blob> {
+  const res = await request(path, {})
+  if (!res.ok) {
+    const data = await res.json().catch(() => undefined)
+    throw new ApiError(res.status, errorMessage(data, res.status), data)
+  }
+  return res.blob()
 }
 
 /** Nest errors come as { message: string | string[] } */

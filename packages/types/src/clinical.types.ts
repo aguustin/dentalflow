@@ -47,3 +47,39 @@ export interface ClinicalRecord {
   notes: { items: ClinicalNote[]; total: number }
   odontogram: ToothState[]
 }
+
+export type TreatmentItemStatus = 'PROPOSED' | 'ACCEPTED' | 'DONE' | 'DISCARDED'
+
+export interface TreatmentItem {
+  id: string
+  catalogItemId: string | null
+  description: string
+  tooth: number | null
+  surface: ToothSurface | null
+  /** cents */
+  price: number
+  status: TreatmentItemStatus
+  doneAt: string | null
+  sale: { id: string; number: number; status: string } | null
+  /** Done and not billed by a live sale */
+  billable: boolean
+}
+
+export interface TreatmentPlan {
+  id: string
+  title: string
+  notes: string | null
+  createdAt: string
+  items: TreatmentItem[]
+  /** cents */
+  totals: { quoted: number; accepted: number; done: number; pendingBilling: number }
+}
+
+export interface ClinicalAttachment {
+  id: string
+  filename: string
+  mimeType: string
+  size: number
+  description: string | null
+  createdAt: string
+}

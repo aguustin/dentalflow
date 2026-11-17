@@ -174,7 +174,16 @@ Sin tests para el CRUD del catálogo.
 
 ---
 
-### Fase 5 — Vertical Dental 🟡 *(entrega A completada 2026-11-13: historia clínica + odontograma)*
+### Fase 5 — Vertical Dental ✅ *(entrega A 2026-11-13, entrega B 2026-11-17)*
+
+> **Entrega B:** planes de tratamiento (ítems de servicios por pieza/cara, precio congelado editable solo como
+> propuesta, estados propuesto → aceptado → realizado / descartado) con presupuesto; facturación de ítems
+> realizados en una venta borrador **en la misma transacción** que los marca (nunca dos veces, aun en paralelo; si la
+> venta se anula, vuelven a ser facturables). Creación de ventas y totales movidos a infraestructura/`shared` para
+> que clínica no importe el módulo de ventas. Adjuntos clínicos (JPG/PNG/WEBP/PDF hasta 15 MB, tipo detectado por
+> contenido, servidos solo con sesión y `nosniff`) en `LocalDiskStorage` detrás de la interfaz `FileStorage`
+> (`UPLOADS_DIR`); en producción, reemplazar por almacenamiento S3-compatible.
+>
 
 > **Entrega A:** módulo `clinical` (solo plantilla dental; acceso solo admin y profesionales — datos de salud).
 > Anamnesis con schema en la plantilla (`vertical.clinical.anamnesisFields`) y alerta de alergias; notas de

@@ -110,4 +110,32 @@ test('register, create a patient and book an appointment', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Registrar' })).toBeHidden() // panel closes after saving
   await expect(page.getByRole('button', { name: '16', exact: true })).toHaveAttribute('title', 'Corona')
   await page.screenshot({ path: 'test-results/odontogram.png', fullPage: true })
+
+  // ── Treatment plan: propose → accept → done → bill ─────────────────────────
+  await page.getByRole('button', { name: 'Tratamientos' }).click()
+  await page.getByPlaceholder(/Nombre del nuevo plan/).fill('Plan smoke')
+  await page.getByRole('button', { name: 'Crear plan' }).click()
+  await page.getByLabel('Servicio').selectOption({ label: 'Limpieza dental' })
+  await page.getByLabel('Pieza').fill('36')
+  await page.getByRole('button', { name: 'Agregar', exact: true }).click()
+  await expect(page.getByRole('cell', { name: 'Limpieza dental' })).toBeVisible()
+  await page.getByRole('button', { name: 'Aceptar' }).click()
+  await page.getByRole('button', { name: 'Marcar realizado' }).click()
+  await page.getByRole('button', { name: /Facturar realizados \(1\)/ }).click()
+  await expect(page.getByRole('heading', { name: /Venta #2/ })).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'Limpieza dental · pieza 36' })).toBeVisible()
+
+  // ── Attachment: upload an x-ray and see its (authenticated) thumbnail ──────
+  await page.goBack()
+  await page.getByRole('button', { name: 'Adjuntos' }).click()
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64',
+  )
+  await page.getByLabel('Archivo').setInputFiles({ name: 'panorámica.png', mimeType: 'image/png', buffer: png })
+  await page.getByPlaceholder(/Descripción/).fill('Panorámica inicial')
+  await page.getByRole('button', { name: 'Subir' }).click()
+  await expect(page.getByText('panorámica.png')).toBeVisible()
+  await expect(page.getByRole('img', { name: 'panorámica.png' })).toBeVisible()
+  await page.screenshot({ path: 'test-results/attachments.png', fullPage: true })
 })

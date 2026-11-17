@@ -59,6 +59,22 @@ describe('Tenant isolation (e2e)', () => {
         .expect(201)
     ).body.id;
     await a.api().post(`/inventory/${ids.catalogItem}/purchase`).send({ quantity: 5 }).expect(201);
+
+    const service = await a.api().post('/catalog').send({ type: 'SERVICE', name: 'Consulta', price: 500 }).expect(201);
+    const plan = await a
+      .api()
+      .post(`/clinical/${ids.customer}/treatment-plans`)
+      .send({ title: 'Plan A', items: [{ catalogItemId: service.body.id }] })
+      .expect(201);
+    ids.plan = plan.body.id;
+    ids.planItem = plan.body.items[0].id;
+    ids.attachment = (
+      await a
+        .api()
+        .post(`/clinical/${ids.customer}/attachments`)
+        .attach('file', Buffer.from('%PDF-1.4 test'), { filename: 'a.pdf', contentType: 'application/pdf' })
+        .expect(201)
+    ).body.id;
     ids.sale = (
       await a
         .api()
@@ -155,6 +171,15 @@ describe('Tenant isolation (e2e)', () => {
       'POST odontogram',
       () => b.api().post(`/clinical/${ids.customer}/odontogram`).send({ entries: [{ tooth: 11, surface: null, condition: 'MISSING' }] }),
     ],
+    ['GET treatment plans', () => b.api().get(`/clinical/${ids.customer}/treatment-plans`)],
+    [
+      'PATCH treatment item',
+      () => b.api().patch(`/clinical/${ids.customer}/treatment-plans/${ids.plan}/items/${ids.planItem}`).send({ status: 'ACCEPTED' }),
+    ],
+    ['POST bill treatment plan', () => b.api().post(`/clinical/${ids.customer}/treatment-plans/${ids.plan}/bill`).send({})],
+    ['GET attachments', () => b.api().get(`/clinical/${ids.customer}/attachments`)],
+    ['GET attachment file', () => b.api().get(`/clinical/${ids.customer}/attachments/${ids.attachment}/file`)],
+    ['DELETE attachment', () => b.api().delete(`/clinical/${ids.customer}/attachments/${ids.attachment}`)],
     ['GET odontogram history', () => b.api().get(`/clinical/${ids.customer}/odontogram/history`)],
     ['GET availability of foreign staff', () => b.api().get(`/appointments/availability?staffId=${ids.staff}&date=2030-01-10`)],
   ];
@@ -192,6 +217,9 @@ describe('Tenant isolation (e2e)', () => {
     expect(sale.body).toMatchObject({ status: 'DRAFT', total: 1000 });
     const item = await a.api().get(`/catalog/${ids.catalogItem}`).expect(200);
     expect(item.body.price).toBe(1000);
+    await a.api().get(`/clinical/${ids.customer}/attachments/${ids.attachment}/file`).expect(200);
+    const plans = await a.api().get(`/clinical/${ids.customer}/treatment-plans`).expect(200);
+    expect(plans.body[0].items[0].status).toBe('PROPOSED');
     const stock = await a.api().get(`/inventory/${ids.catalogItem}`).expect(200);
     expect(stock.body.stockQuantity).toBe(5);
   });

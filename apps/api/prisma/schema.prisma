@@ -140,6 +140,8 @@ model Customer {
   clinicalRecord  ClinicalRecord?
   clinicalNotes   ClinicalNote[]
   toothConditions ToothCondition[]
+  treatmentPlans  TreatmentPlan[]
+  attachments     ClinicalAttachment[]
 
   @@index([organizationId])
   @@index([organizationId, documentId])
@@ -288,6 +290,7 @@ model CatalogItem {
   saleItems      SaleItem[]
   appointments   Appointment[]
   stockMovements StockMovement[]
+  treatmentItems TreatmentPlanItem[]
 
   @@unique([organizationId, sku])
   @@index([organizationId, type])
@@ -332,6 +335,7 @@ model Sale {
   items          SaleItem[]
   payments       Payment[]
   stockMovements StockMovement[]
+  treatmentItems TreatmentPlanItem[]
 
   @@unique([organizationId, number])
   @@index([organizationId, createdAt])
@@ -489,6 +493,78 @@ model ToothCondition {
 
   @@index([customerId, tooth, createdAt])
   @@map("tooth_conditions")
+}
+
+enum TreatmentItemStatus {
+  PROPOSED
+  ACCEPTED
+  DONE
+  DISCARDED
+}
+
+model TreatmentPlan {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  customerId     String   @map("customer_id")
+  title          String
+  notes          String?
+  createdBy      String   @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  customer Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items    TreatmentPlanItem[]
+
+  @@index([organizationId, customerId])
+  @@map("treatment_plans")
+}
+
+model TreatmentPlanItem {
+  id             String              @id @default(uuid())
+  planId         String              @map("plan_id")
+  organizationId String              @map("organization_id")
+  catalogItemId  String?             @map("catalog_item_id")
+  /// Service name snapshot
+  description    String
+  /// FDI tooth (optional) and surface (optional)
+  tooth          Int?
+  surface        String?
+  /// Price snapshot in cents (editable while PROPOSED)
+  price          Int
+  status         TreatmentItemStatus @default(PROPOSED)
+  doneAt         DateTime?           @map("done_at")
+  /// Sale that billed this item. Items whose sale was voided can be billed again.
+  saleId         String?             @map("sale_id")
+  position       Int
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  plan        TreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  catalogItem CatalogItem?  @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+  sale        Sale?         @relation(fields: [saleId], references: [id], onDelete: SetNull)
+
+  @@index([planId])
+  @@index([saleId])
+  @@map("treatment_plan_items")
+}
+
+/// Clinical files (x-rays, documents). Stored outside the DB; `storageKey` never derives from user input.
+model ClinicalAttachment {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  customerId     String   @map("customer_id")
+  filename       String
+  mimeType       String   @map("mime_type")
+  size           Int
+  storageKey     String   @unique @map("storage_key")
+  description    String?
+  uploadedBy     String   @map("uploaded_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, customerId])
+  @@map("clinical_attachments")
 }
 
 // ─── BILLING ────────────────────────────────────────────────────────────────

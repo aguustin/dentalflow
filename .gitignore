@@ -58,3 +58,6 @@ coverage/
 # Playwright
 test-results/
 playwright-report/
+
+# Local file storage (clinical attachments in development)
+apps/api/storage/

@@ -6,8 +6,10 @@ import { api, ApiError } from '../../lib/api'
 import { useOrganization } from '../../org/OrganizationContext'
 import { AttributeFields, AttributeValues } from '../../components/AttributeFields'
 import { Odontogram } from './Odontogram'
+import { TreatmentsTab } from './TreatmentsTab'
+import { AttachmentsTab } from './AttachmentsTab'
 
-type Tab = 'anamnesis' | 'odontogram' | 'notes'
+type Tab = 'anamnesis' | 'odontogram' | 'treatments' | 'notes' | 'attachments'
 
 export function ClinicalPage() {
   const { id = '' } = useParams()
@@ -49,8 +51,10 @@ export function ClinicalPage() {
         {(
           [
             ['odontogram', 'Odontograma'],
+            ['treatments', 'Tratamientos'],
             ['anamnesis', 'Anamnesis'],
             ['notes', `Evolución (${data.notes.total})`],
+            ['attachments', 'Adjuntos'],
           ] as [Tab, string][]
         ).map(([key, label]) => (
           <button key={key} className={tab === key ? 'tab active' : 'tab'} onClick={() => setTab(key)}>
@@ -69,6 +73,8 @@ export function ClinicalPage() {
         />
       )}
       {tab === 'notes' && <Notes customerId={id} first={data.notes} />}
+      {tab === 'treatments' && <TreatmentsTab customerId={id} />}
+      {tab === 'attachments' && <AttachmentsTab customerId={id} />}
     </section>
   )
 }

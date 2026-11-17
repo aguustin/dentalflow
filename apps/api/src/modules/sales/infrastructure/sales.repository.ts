@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PaymentMethod, Prisma, SaleStatus } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { restoreStockForSale, takeStockForSale } from '../../../infrastructure/inventory/stock-ledger';
+import { nextSaleNumber } from '../../../infrastructure/sales/draft-sale';
 
 export interface SaleLineData {
   catalogItemId: string | null;
@@ -82,9 +83,7 @@ export class SalesRepository {
   create(organizationId: string, data: SaleWriteData): Promise<SaleRow> {
     const { lines, ...sale } = data;
     return this.prisma.$transaction(async (tx) => {
-      const [{ sale_counter: number }] = await tx.$queryRaw<{ sale_counter: number }[]>`
-        UPDATE "organizations" SET "sale_counter" = "sale_counter" + 1
-        WHERE "id" = ${organizationId} RETURNING "sale_counter"`;
+      const number = await nextSaleNumber(tx, organizationId);
       return tx.sale.create({
         data: { organizationId, number, ...sale, items: linesCreate(lines) },
         include: detailInclude,
