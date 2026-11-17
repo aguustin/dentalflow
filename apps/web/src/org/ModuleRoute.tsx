@@ -1,11 +1,13 @@
 import { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { ModuleKey } from '@dentalflow/types'
-import { MODULE_ROUTES, useHasModule, useOrganization } from './OrganizationContext'
+import { MODULE_ROUTES, useOrganization } from './OrganizationContext'
 
-/** Renders children only if the module is enabled for the organization. */
-export function ModuleRoute({ module, children }: { module: ModuleKey; children: ReactNode }) {
-  if (!useHasModule(module)) {
+/** Renders children only if the module (or any of several) is enabled for the organization. */
+export function ModuleRoute({ module, children }: { module: ModuleKey | ModuleKey[]; children: ReactNode }) {
+  const enabled = useOrganization().enabledModules
+  const modules = Array.isArray(module) ? module : [module]
+  if (!modules.some((m) => enabled.includes(m))) {
     return (
       <section>
         <h1>Módulo no disponible</h1>

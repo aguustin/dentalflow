@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Resource, StaffMember } from '@dentalflow/types'
 import { api } from '../../lib/api'
-import { useTerms } from '../../org/OrganizationContext'
+import { useHasModule, useTerms } from '../../org/OrganizationContext'
 import { summarizeHours } from './hours'
 
 export function StaffPage() {
   const terms = useTerms()
+  const hasScheduling = useHasModule('scheduling')
   const [showInactive, setShowInactive] = useState(false)
   const staff = useQuery({
     queryKey: ['staff', { showInactive }],
@@ -33,8 +34,7 @@ export function StaffPage() {
         <p className="error">No se pudo cargar: {staff.error.message}</p>
       ) : staff.data.length === 0 ? (
         <p className="muted">
-          Todavía no cargaste {terms.staff.plural.toLowerCase()}. Necesitás al menos uno para dar{' '}
-          {terms.appointment.plural.toLowerCase()}.
+          Todavía no cargaste {terms.staff.plural.toLowerCase()}.
         </p>
       ) : (
         <table className="table">
@@ -42,7 +42,7 @@ export function StaffPage() {
             <tr>
               <th>Nombre</th>
               <th>Especialidad</th>
-              <th>Horario</th>
+              {hasScheduling && <th>Horario</th>}
             </tr>
           </thead>
           <tbody>
@@ -54,14 +54,16 @@ export function StaffPage() {
                   {!m.isActive && <span className="muted"> (inactivo)</span>}
                 </td>
                 <td>{m.specialty ?? '—'}</td>
-                <td className="small">{summarizeHours(m.workingHours) || <span className="muted">Sin horario</span>}</td>
+                {hasScheduling && (
+                  <td className="small">{summarizeHours(m.workingHours) || <span className="muted">Sin horario</span>}</td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       )}
 
-      <Resources />
+      {hasScheduling && <Resources />}
     </section>
   )
 }

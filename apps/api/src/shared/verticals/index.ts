@@ -1,4 +1,5 @@
 import { DENTAL_VERTICAL } from './dental.vertical';
+import { REPAIR_MECHANIC_VERTICAL, REPAIR_TECH_VERTICAL } from './repair.verticals';
 import { VerticalTemplate } from './vertical.types';
 
 export * from './vertical.types';
@@ -7,6 +8,8 @@ export * from './attributes.validator';
 /** Registry of available verticals. Add a new template file and register it here. */
 export const VERTICALS: Record<string, VerticalTemplate> = {
   [DENTAL_VERTICAL.key]: DENTAL_VERTICAL,
+  [REPAIR_MECHANIC_VERTICAL.key]: REPAIR_MECHANIC_VERTICAL,
+  [REPAIR_TECH_VERTICAL.key]: REPAIR_TECH_VERTICAL,
 };
 
 export const VERTICAL_KEYS = Object.keys(VERTICALS);

@@ -34,7 +34,7 @@ export default defineConfig({
         JWT_REFRESH_SECRET: 'e2e-refresh-secret',
       },
       reuseExistingServer: false,
-      timeout: 180_000,
+      timeout: 300_000,
     },
     {
       command: `npx vite --port ${WEB_PORT} --strictPort`,

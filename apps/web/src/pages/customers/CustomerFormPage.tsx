@@ -5,6 +5,7 @@ import { api } from '../../lib/api'
 import { Customer } from '@dentalflow/types'
 import { useHasModule, useOrganization } from '../../org/OrganizationContext'
 import { AttributeFields, AttributeValues } from '../../components/AttributeFields'
+import { CustomerAssets } from '../work-orders/CustomerAssets'
 
 interface FormState {
   name: string
@@ -25,6 +26,7 @@ export function CustomerFormPage() {
   const org = useOrganization()
   const terms = org.vertical.terminology.customer
   const hasClinical = useHasModule('clinical')
+  const hasWorkOrders = useHasModule('work_orders')
 
   const existing = useQuery({
     queryKey: ['customers', id],
@@ -153,6 +155,7 @@ export function CustomerFormPage() {
           )}
         </div>
       </form>
+      {!isNew && hasWorkOrders && id && <CustomerAssets customerId={id} />}
     </section>
   )
 }

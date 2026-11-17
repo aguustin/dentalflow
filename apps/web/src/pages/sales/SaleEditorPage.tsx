@@ -243,7 +243,7 @@ export function SaleEditorPage() {
   )
 }
 
-function CatalogItemPicker({ onPick }: { onPick: (item: CatalogItem) => void }) {
+export function CatalogItemPicker({ onPick }: { onPick: (item: CatalogItem) => void }) {
   const money = useMoney()
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')

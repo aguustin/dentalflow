@@ -12,6 +12,7 @@ export const MODULE_ROUTES: Record<ModuleKey, string> = {
   inventory: '/inventory',
   /** Per-patient screen (/customers/:id/clinical), no menu entry */
   clinical: '/customers',
+  work_orders: '/work-orders',
 }
 
 const OrganizationContext = createContext<CurrentOrganization | null>(null)

@@ -130,12 +130,18 @@ export class AppointmentPrismaRepository implements IAppointmentRepository {
 /**
  * The DB exclusion constraints (appointments_staff_no_overlap / _resource_no_overlap)
  * reject double bookings that slip past the app-level check (concurrent requests).
- * Postgres reports them as SQLSTATE 23P01.
+ * Postgres reports them as SQLSTATE 23P01 — or, when both inserts wait on each other to
+ * check the constraint, as a deadlock (40P01) where it aborts one. Same outcome: one wins.
  */
 function rethrowDoubleBooking(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
   if (message.includes('23P01') || message.includes('_no_overlap')) {
     throw new DomainError('CONFLICT', 'The time slot was just booked by someone else', {
+      reason: 'double_booking',
+    });
+  }
+  if (message.includes('40P01')) {
+    throw new DomainError('CONFLICT', 'Someone else is booking this time slot right now. Try again.', {
       reason: 'double_booking',
     });
   }

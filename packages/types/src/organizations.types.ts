@@ -1,6 +1,13 @@
 /** Organization and business vertical (template) as returned by GET /organizations/current. */
 
-export type ModuleKey = 'customers' | 'scheduling' | 'catalog' | 'sales' | 'inventory' | 'clinical'
+export type ModuleKey =
+  | 'customers'
+  | 'scheduling'
+  | 'catalog'
+  | 'sales'
+  | 'inventory'
+  | 'clinical'
+  | 'work_orders'
 
 export interface Terminology {
   singular: string
@@ -25,8 +32,13 @@ export interface Vertical {
     appointment: Terminology
     staff: Terminology
     resource: Terminology
+    /** Repair verticals */
+    workOrder?: Terminology
+    asset?: Terminology
   }
   customerAttributes: AttributeField[]
+  /** Repair verticals: fields of the customer's equipment */
+  assetAttributes?: AttributeField[]
   /** Health-care verticals only */
   clinical?: { anamnesisFields: AttributeField[] }
 }

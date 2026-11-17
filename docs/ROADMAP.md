@@ -202,7 +202,15 @@ Sin tests para el odontograma ni la historia clínica (son CRUD).
 
 ---
 
-### Fase 6 — Órdenes de trabajo (Servicio técnico / Mecánica)
+### Fase 6 — Órdenes de trabajo (Servicio técnico / Mecánica) 🟡 *(entrega A completada 2026-11-17)*
+
+> **Entrega A:** rubros `repair_mechanic` (Taller mecánico) y `repair_tech` (Servicio técnico) con su vocabulario,
+> campos de equipo (`assetAttributes`) y roles (`reception`, `technician`). Equipos del cliente (`Asset`) con historial
+> de órdenes. Órdenes con numeración correlativa, máquina de estados (recibido → diagnóstico → presupuestado →
+> aprobado → en reparación → listo → entregado; rechazado/cancelado con motivo obligatorio), ítems editables solo
+> antes de presupuestar, historial de estados con autor, y tablero como pantalla principal. Profesionales
+> disponibles con agenda **o** con órdenes (`@RequireModule` acepta alternativas).
+> **Entrega B pendiente:** reserva de stock al aprobar, entrega → venta, presupuesto imprimible.
 Segundo rubro: valida que la arquitectura sirve. Si esta fase requiere tocar mucho el núcleo, hay que revisar la Fase 0.
 El bloque es genérico: sirve después para cerrajería, electricistas, electrodomésticos, etc.
 

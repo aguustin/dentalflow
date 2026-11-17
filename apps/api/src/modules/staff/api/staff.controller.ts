@@ -17,7 +17,7 @@ import {
 
 @ApiTags('Staff')
 @ApiBearerAuth()
-@RequireModule('scheduling')
+@RequireModule('scheduling', 'work_orders')
 @Controller('staff')
 export class StaffController {
   constructor(private readonly staff: StaffService) {}
@@ -84,7 +84,7 @@ export class StaffController {
 
 @ApiTags('Resources')
 @ApiBearerAuth()
-@RequireModule('scheduling')
+@RequireModule('scheduling', 'work_orders')
 @Controller('resources')
 export class ResourcesController {
   constructor(private readonly resources: ResourcesService) {}

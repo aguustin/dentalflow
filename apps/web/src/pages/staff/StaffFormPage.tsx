@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Member, StaffDetail, WorkingHoursRange } from '@dentalflow/types'
 import { api } from '../../lib/api'
 import { formatDay, toDateInput } from '../../lib/dates'
-import { useTerms } from '../../org/OrganizationContext'
+import { useHasModule, useTerms } from '../../org/OrganizationContext'
 import { minuteToTime, timeToMinute, WEEKDAYS } from './hours'
 
 /** Create (/staff/new) and edit (/staff/:id) a staff member. Hours and time off only when editing. */
@@ -12,6 +12,7 @@ export function StaffFormPage() {
   const { id } = useParams()
   const isNew = !id
   const allTerms = useTerms()
+  const hasScheduling = useHasModule('scheduling')
   const terms = allTerms.staff
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -105,12 +106,12 @@ export function StaffFormPage() {
         {save.error && <p className="error">{save.error.message}</p>}
         <div className="actions">
           <button type="submit" disabled={save.isPending}>
-            {save.isPending ? 'Guardando…' : isNew ? 'Crear y cargar horario' : 'Guardar'}
+            {save.isPending ? 'Guardando…' : isNew ? (hasScheduling ? 'Crear y cargar horario' : 'Crear') : 'Guardar'}
           </button>
         </div>
       </form>
 
-      {existing.data && (
+      {existing.data && hasScheduling && (
         <>
           <WorkingHoursEditor staffId={existing.data.id} initial={existing.data.workingHours} />
           <TimeOffEditor staff={existing.data} />

@@ -24,6 +24,7 @@ function Shell() {
     sales: 'Ventas',
     inventory: 'Inventario',
     clinical: '',
+    work_orders: terms.workOrder?.plural ?? 'Órdenes',
   }
   const lowStock = useLowStockCount(org.enabledModules.includes('inventory'))
   // Home module first, then the rest in template order; only enabled ones.
@@ -50,7 +51,9 @@ function Shell() {
               )}
             </NavLink>
           ))}
-          {org.enabledModules.includes('scheduling') && <NavLink to="/staff">{terms.staff.plural}</NavLink>}
+          {(org.enabledModules.includes('scheduling') || org.enabledModules.includes('work_orders')) && (
+            <NavLink to="/staff">{terms.staff.plural}</NavLink>
+          )}
           <NavLink to="/users">Usuarios</NavLink>
         </nav>
         <button className="link logout" onClick={() => void logout()}>

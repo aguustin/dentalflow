@@ -14,18 +14,18 @@ export class ModuleGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const required = this.reflector.getAllAndOverride<string | undefined>(MODULE_KEY, [
+    const required = this.reflector.getAllAndOverride<string[] | undefined>(MODULE_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    if (!required) return true;
+    if (!required?.length) return true;
 
     const user: RequestUser | undefined = context.switchToHttp().getRequest().user;
     if (!user) throw new ForbiddenException('No authenticated user');
 
     const org = await this.organizationRepository.findById(user.organizationId);
-    if (!org?.hasModule(required)) {
-      throw new ForbiddenException(`Module '${required}' is not enabled for this organization`);
+    if (!org || !required.some((m) => org.hasModule(m))) {
+      throw new ForbiddenException(`Module '${required.join("' or '")}' is not enabled for this organization`);
     }
     return true;
   }

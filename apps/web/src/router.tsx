@@ -20,6 +20,10 @@ import { CashPage } from './pages/sales/CashPage'
 import { InventoryPage } from './pages/inventory/InventoryPage'
 import { InventoryItemPage } from './pages/inventory/InventoryItemPage'
 import { ClinicalPage } from './pages/clinical/ClinicalPage'
+import { WorkOrdersBoard } from './pages/work-orders/WorkOrdersBoard'
+import { WorkOrderNewPage } from './pages/work-orders/WorkOrderNewPage'
+import { WorkOrderDetailPage } from './pages/work-orders/WorkOrderDetailPage'
+import { AssetPage } from './pages/work-orders/AssetPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
@@ -68,7 +72,7 @@ export const router = createBrowserRouter([
       {
         path: 'staff',
         element: (
-          <ModuleRoute module="scheduling">
+          <ModuleRoute module={['scheduling', 'work_orders']}>
             <StaffPage />
           </ModuleRoute>
         ),
@@ -76,7 +80,7 @@ export const router = createBrowserRouter([
       {
         path: 'staff/new',
         element: (
-          <ModuleRoute module="scheduling">
+          <ModuleRoute module={['scheduling', 'work_orders']}>
             <StaffFormPage />
           </ModuleRoute>
         ),
@@ -84,7 +88,7 @@ export const router = createBrowserRouter([
       {
         path: 'staff/:id',
         element: (
-          <ModuleRoute module="scheduling">
+          <ModuleRoute module={['scheduling', 'work_orders']}>
             <StaffFormPage key="edit" />
           </ModuleRoute>
         ),
@@ -174,6 +178,38 @@ export const router = createBrowserRouter([
         element: (
           <ModuleRoute module="clinical">
             <ClinicalPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'work-orders',
+        element: (
+          <ModuleRoute module="work_orders">
+            <WorkOrdersBoard />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'work-orders/new',
+        element: (
+          <ModuleRoute module="work_orders">
+            <WorkOrderNewPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'work-orders/:id',
+        element: (
+          <ModuleRoute module="work_orders">
+            <WorkOrderDetailPage />
+          </ModuleRoute>
+        ),
+      },
+      {
+        path: 'assets/:id',
+        element: (
+          <ModuleRoute module="work_orders">
+            <AssetPage />
           </ModuleRoute>
         ),
       },

@@ -12,6 +12,7 @@ export const MODULE_KEYS = [
   'sales',
   'inventory',
   'clinical',
+  'work_orders',
 ] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
@@ -48,9 +49,14 @@ export interface VerticalTemplate {
     appointment: Terminology;
     staff: Terminology;
     resource: Terminology;
+    /** Repair verticals */
+    workOrder?: Terminology;
+    asset?: Terminology;
   };
   /** Extra fields stored in Customer.attributes */
   customerAttributes: AttributeField[];
+  /** Repair verticals: fields of the customer's equipment (Asset.attributes) */
+  assetAttributes?: AttributeField[];
   /** Health-care verticals: schema of the medical history (anamnesis) */
   clinical?: {
     anamnesisFields: AttributeField[];
