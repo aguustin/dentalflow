@@ -1,5 +1,6 @@
 import { DENTAL_VERTICAL } from './dental.vertical';
 import { REPAIR_MECHANIC_VERTICAL, REPAIR_TECH_VERTICAL } from './repair.verticals';
+import { RETAIL_CLOTHING_VERTICAL, RETAIL_TECH_VERTICAL } from './retail.verticals';
 import { VerticalTemplate } from './vertical.types';
 
 export * from './vertical.types';
@@ -10,6 +11,8 @@ export const VERTICALS: Record<string, VerticalTemplate> = {
   [DENTAL_VERTICAL.key]: DENTAL_VERTICAL,
   [REPAIR_MECHANIC_VERTICAL.key]: REPAIR_MECHANIC_VERTICAL,
   [REPAIR_TECH_VERTICAL.key]: REPAIR_TECH_VERTICAL,
+  [RETAIL_CLOTHING_VERTICAL.key]: RETAIL_CLOTHING_VERTICAL,
+  [RETAIL_TECH_VERTICAL.key]: RETAIL_TECH_VERTICAL,
 };
 
 export const VERTICAL_KEYS = Object.keys(VERTICALS);

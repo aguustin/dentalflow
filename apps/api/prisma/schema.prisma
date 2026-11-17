@@ -276,6 +276,13 @@ model CatalogItem {
   type            CatalogItemType
   name            String
   sku             String?
+  /// EAN/UPC or any code a barcode scanner reads (unique per organization)
+  barcode         String?
+  /// Variant groups (e.g. "Remera básica") are not sold nor stocked: their variants are.
+  isVariantGroup  Boolean         @default(false) @map("is_variant_group")
+  /// For variants: the group they belong to, and their option values ({"Talle":"M","Color":"Rojo"})
+  parentId        String?         @map("parent_id")
+  variantOptions  Json?           @map("variant_options")
   /// Price in minor units (cents)
   price           Int
   /// Services only: default appointment duration
@@ -294,6 +301,8 @@ model CatalogItem {
   updatedAt       DateTime        @updatedAt @map("updated_at")
 
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent       CatalogItem?  @relation("Variants", fields: [parentId], references: [id], onDelete: Cascade)
+  variants     CatalogItem[] @relation("Variants")
   saleItems      SaleItem[]
   appointments   Appointment[]
   stockMovements StockMovement[]
@@ -302,7 +311,9 @@ model CatalogItem {
   reservations   StockReservation[]
 
   @@unique([organizationId, sku])
+  @@unique([organizationId, barcode])
   @@index([organizationId, type])
+  @@index([parentId])
   @@map("catalog_items")
 }
 

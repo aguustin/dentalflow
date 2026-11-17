@@ -7,10 +7,24 @@ export interface CatalogItem {
   type: CatalogItemType
   name: string
   sku: string | null
+  /** EAN/UPC or any scanner code */
+  barcode: string | null
   price: number
   durationMinutes: number | null
   trackStock: boolean
+  stockQuantity: number
+  reservedQuantity: number
+  /** Container of variants: not sold, no stock */
+  isVariantGroup: boolean
+  /** Variants: their group and option values ({ Talle: 'M', Color: 'Negro' }) */
+  parentId: string | null
+  variantOptions: Record<string, string> | null
+  attributes: Record<string, string | number | boolean>
   isActive: boolean
+}
+
+export interface CatalogItemDetail extends CatalogItem {
+  variants: CatalogItem[]
 }
 
 export type SaleStatus = 'DRAFT' | 'CONFIRMED' | 'PARTIALLY_PAID' | 'PAID' | 'VOIDED'

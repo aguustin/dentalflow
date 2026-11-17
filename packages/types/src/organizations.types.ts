@@ -27,6 +27,8 @@ export interface Vertical {
   label: string
   modules: ModuleKey[]
   homeModule: ModuleKey
+  /** Specific screen to open instead of the home module's default (e.g. '/pos') */
+  homeRoute?: string
   terminology: {
     customer: Terminology
     appointment: Terminology
@@ -37,6 +39,10 @@ export interface Vertical {
     asset?: Terminology
   }
   customerAttributes: AttributeField[]
+  /** Extra fields of catalog products (brand, warranty…) */
+  productAttributes?: AttributeField[]
+  /** Suggested variant axes for the generator */
+  variantAxes?: { name: string; values: string[] }[]
   /** Repair verticals: fields of the customer's equipment */
   assetAttributes?: AttributeField[]
   /** Health-care verticals only */

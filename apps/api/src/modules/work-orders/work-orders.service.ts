@@ -279,13 +279,14 @@ export class WorkOrdersService {
       (
         await this.prisma.catalogItem.findMany({
           where: { id: { in: ids }, organizationId, isActive: true },
-          select: { id: true, name: true, price: true },
+          select: { id: true, name: true, price: true, isVariantGroup: true },
         })
       ).map((c) => [c.id, c]),
     );
     return items.map((item, i) => {
       const ref = item.catalogItemId ? catalog.get(item.catalogItemId) : undefined;
       if (item.catalogItemId && !ref) throw new NotFoundException(`Catalog item '${item.catalogItemId}' not found`);
+      if (ref?.isVariantGroup) throw new DomainError('INVALID', `'${ref.name}' has variants — choose one`);
       const description = item.description?.trim() || ref?.name;
       if (!description) throw new DomainError('INVALID', `line ${i + 1}: description is required for free-text lines`);
       const unitPrice = item.unitPrice ?? ref?.price;

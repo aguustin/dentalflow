@@ -51,6 +51,7 @@ function Shell() {
               )}
             </NavLink>
           ))}
+          {org.enabledModules.includes('sales') && <NavLink to="/pos">Punto de venta</NavLink>}
           {(org.enabledModules.includes('scheduling') || org.enabledModules.includes('work_orders')) && (
             <NavLink to="/staff">{terms.staff.plural}</NavLink>
           )}

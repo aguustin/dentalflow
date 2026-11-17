@@ -143,6 +143,58 @@ export class SalesRepository {
   }
 
   /**
+   * Point-of-sale checkout: sale (already paid), stock and payment in ONE transaction.
+   * If stock is short nothing is created (unlike create+confirm, which keeps a draft).
+   */
+  checkout(
+    organizationId: string,
+    data: SaleWriteData,
+    payment: { method: PaymentMethod },
+    userId: string,
+  ): Promise<SaleRow> {
+    const { lines, appointmentId: _ignored, ...sale } = data;
+    return this.prisma.$transaction(async (tx) => {
+      const number = await nextSaleNumber(tx, organizationId);
+      const paid = sale.total > 0;
+      const created = await tx.sale.create({
+        data: {
+          organizationId,
+          number,
+          ...sale,
+          status: paid ? 'PAID' : 'CONFIRMED',
+          paidTotal: sale.total,
+          confirmedAt: new Date(),
+          items: linesCreate(lines),
+        },
+        select: { id: true },
+      });
+      await takeStockForSale(
+        tx,
+        organizationId,
+        created.id,
+        lines.flatMap((l) => (l.catalogItemId ? [{ catalogItemId: l.catalogItemId, quantity: l.quantity }] : [])),
+        userId,
+      );
+      if (paid) {
+        const session = await tx.cashSession.findFirst({
+          where: { organizationId, closedAt: null },
+          select: { id: true },
+        });
+        await tx.payment.create({
+          data: {
+            saleId: created.id,
+            cashSessionId: session?.id ?? null,
+            method: payment.method,
+            amount: sale.total,
+            createdBy: userId,
+          },
+        });
+      }
+      return tx.sale.findUniqueOrThrow({ where: { id: created.id }, include: detailInclude });
+    });
+  }
+
+  /**
    * Registers a payment only if the sale still has the status and paid amount that were read.
    * Links it to the open cash session, if any.
    */
@@ -192,7 +244,7 @@ export class SalesRepository {
   findCatalogItems(ids: string[], organizationId: string) {
     return this.prisma.catalogItem.findMany({
       where: { id: { in: ids }, organizationId, isActive: true },
-      select: { id: true, name: true, price: true },
+      select: { id: true, name: true, price: true, isVariantGroup: true },
     });
   }
 

@@ -72,6 +72,7 @@ export function CatalogPage() {
               <tr key={i.id} className={i.isActive ? undefined : 'inactive'}>
                 <td>
                   <Link to={`/catalog/${i.id}`}>{i.name}</Link>
+                  {i.isVariantGroup && <span className="badge">Con variantes</span>}
                 </td>
                 <td>{TYPE_LABELS[i.type]}</td>
                 <td>{i.sku ?? '—'}</td>

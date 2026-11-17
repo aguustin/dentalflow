@@ -174,3 +174,11 @@ a.secondary-link { background: none; color: var(--fg); border: 1px solid var(--b
   .layout { display: block; }
   .content { padding: 0; }
 }
+
+.pos-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.scan { width: 100%; font-size: 1.1rem; padding: 12px; margin-bottom: 8px; }
+.pos-pay { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 16px; }
+.pos-pay .pay { font-size: 1.1rem; padding: 12px; }
+.axis-name { max-width: 140px; }
+.badge { margin-left: 8px; }
+@media (max-width: 800px) { .pos-grid { grid-template-columns: 1fr; } }

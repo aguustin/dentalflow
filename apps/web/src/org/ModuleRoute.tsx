@@ -21,8 +21,9 @@ export function ModuleRoute({ module, children }: { module: ModuleKey | ModuleKe
 /** Redirects "/" to the main screen of the organization's vertical. */
 export function HomeRedirect() {
   const org = useOrganization()
-  const home = org.enabledModules.includes(org.vertical.homeModule)
-    ? org.vertical.homeModule
-    : org.enabledModules[0]
+  const homeEnabled = org.enabledModules.includes(org.vertical.homeModule)
+  // A vertical can point to a specific screen of its home module (e.g. retail → POS)
+  if (homeEnabled && org.vertical.homeRoute) return <Navigate to={org.vertical.homeRoute} replace />
+  const home = homeEnabled ? org.vertical.homeModule : org.enabledModules[0]
   return <Navigate to={home ? MODULE_ROUTES[home] : '/users'} replace />
 }

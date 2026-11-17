@@ -44,6 +44,8 @@ export interface VerticalTemplate {
   modules: ModuleKey[];
   /** Module the client opens by default after login */
   homeModule: ModuleKey;
+  /** Specific screen to open instead of the home module's default (e.g. '/pos') */
+  homeRoute?: string;
   terminology: {
     customer: Terminology;
     appointment: Terminology;
@@ -55,6 +57,10 @@ export interface VerticalTemplate {
   };
   /** Extra fields stored in Customer.attributes */
   customerAttributes: AttributeField[];
+  /** Extra fields of catalog products (CatalogItem.attributes), e.g. brand, warranty */
+  productAttributes?: AttributeField[];
+  /** Suggested variant axes for the variant generator (e.g. Talle: S, M, L) */
+  variantAxes?: { name: string; values: string[] }[];
   /** Repair verticals: fields of the customer's equipment (Asset.attributes) */
   assetAttributes?: AttributeField[];
   /** Health-care verticals: schema of the medical history (anamnesis) */

@@ -13,10 +13,13 @@ export function CustomerPicker({
   value,
   onChange,
   label,
+  required = true,
 }: {
   value: PickedCustomer | null
   onChange: (c: PickedCustomer | null) => void
   label: string
+  /** Shows the required marker (default true) */
+  required?: boolean
 }) {
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
@@ -48,11 +51,12 @@ export function CustomerPicker({
 
   return (
     <label>
-      {label} *
+      {label}
+      {required && ' *'}
       <input placeholder="Buscar por nombre…" value={search} onChange={(e) => setSearch(e.target.value)} />
       <div className="picker-results">
         {results.isPending && <span className="muted small">Buscando…</span>}
-        {results.data?.items.length === 0 && <span className="muted small">Sin resultados</span>}
+        {debounced && results.data?.items.length === 0 && <span className="muted small">Sin resultados</span>}
         {results.data?.items.map((c) => (
           <button type="button" key={c.id} className="link" onClick={() => onChange({ id: c.id, name: c.name })}>
             {c.name}

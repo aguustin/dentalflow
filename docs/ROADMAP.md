@@ -233,7 +233,16 @@ El bloque es genérico: sirve después para cerrajería, electricistas, electrod
 
 ---
 
-### Fase 7 — Retail (Ropa y Tecnología)
+### Fase 7 — Retail (Ropa y Tecnología) 🟡 *(entrega A completada 2026-11-17)*
+
+> **Entrega A:** rubros `retail_clothing` y `retail_tech` (inicio en el punto de venta vía `homeRoute`, campos de
+> producto `productAttributes`, ejes de variantes sugeridos, roles `cashier` y `stock_keeper`). Variantes como ítems
+> del catálogo hijos de un agrupador (`isVariantGroup`/`parentId`/`variantOptions`): cada una con SKU, código de
+> barras, precio y stock propios, así el ledger, las ventas y las reservas no cambiaron; el agrupador no se vende ni
+> tiene stock (CHECK en la base). Generador de combinaciones que solo crea las faltantes. Código de barras único por
+> org y `GET /catalog/lookup` para lectores. Cobro de punto de venta (`POST /sales/checkout`): venta pagada + stock +
+> pago en una sola transacción (sin stock no queda nada creado).
+> **Entrega B pendiente:** devoluciones/cambios con reintegro, nº de serie y garantía.
 Casi todo es plantilla sobre Catálogo + Ventas + Inventario.
 
 | Tarea | Cómo |

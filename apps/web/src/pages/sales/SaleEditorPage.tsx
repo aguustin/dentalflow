@@ -126,7 +126,7 @@ export function SaleEditorPage() {
 
       <form className="form" onSubmit={onSubmit}>
         <div className="row narrow-row">
-          <CustomerPicker label={`${terms.customer.singular} (opcional)`} value={customer} onChange={setCustomer} />
+          <CustomerPicker label={`${terms.customer.singular} (opcional)`} required={false} value={customer} onChange={setCustomer} />
           <label>
             {terms.staff.singular} (opcional)
             <select value={staffId} onChange={(e) => setStaffId(e.target.value)}>
@@ -253,7 +253,7 @@ export function CatalogItemPicker({ onPick }: { onPick: (item: CatalogItem) => v
   }, [search])
   const results = useQuery({
     queryKey: ['catalog', 'picker', debounced],
-    queryFn: () => api<Paginated<CatalogItem>>(`/catalog?limit=8&search=${encodeURIComponent(debounced)}`),
+    queryFn: () => api<Paginated<CatalogItem>>(`/catalog?limit=8&sellable=true&search=${encodeURIComponent(debounced)}`),
     enabled: debounced.length > 0,
   })
 

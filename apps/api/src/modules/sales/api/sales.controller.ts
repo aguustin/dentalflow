@@ -98,6 +98,19 @@ class CreateSaleRequest extends SaleRequest {
   confirm?: boolean;
 }
 
+class CheckoutPaymentRequest {
+  @ApiProperty({ enum: PaymentMethod })
+  @IsEnum(PaymentMethod)
+  method: PaymentMethod;
+}
+
+class CheckoutRequest extends SaleRequest {
+  @ApiProperty({ type: CheckoutPaymentRequest, description: 'The full total is collected with this method' })
+  @ValidateNested()
+  @Type(() => CheckoutPaymentRequest)
+  payment: CheckoutPaymentRequest;
+}
+
 class PaymentRequest {
   @ApiProperty({ enum: PaymentMethod })
   @IsEnum(PaymentMethod)
@@ -166,6 +179,14 @@ export class SalesController {
   create(@Body() body: CreateSaleRequest, @CurrentUser() actor: RequestUser) {
     const { confirm, ...input } = body;
     return this.sales.create(actor.organizationId, input, { confirm, userId: actor.userId });
+  }
+
+  @Post('checkout')
+  @RequirePermissions('sales.create')
+  @ApiOperation({ summary: 'Point of sale: sale + stock + full payment in one transaction' })
+  checkout(@Body() body: CheckoutRequest, @CurrentUser() actor: RequestUser) {
+    const { payment, ...input } = body;
+    return this.sales.checkout(actor.organizationId, actor.userId, input, payment.method);
   }
 
   @Post('from-appointment/:appointmentId')

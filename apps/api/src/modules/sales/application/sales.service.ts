@@ -126,6 +126,13 @@ export class SalesService {
     return this.get(id, organizationId);
   }
 
+  /** Point of sale: create, take stock and collect the full amount atomically. */
+  async checkout(organizationId: string, userId: string, input: SaleInput, method: PaymentMethod) {
+    if (input.items.length === 0) throw new DomainError('INVALID', 'The cart is empty');
+    const data = await this.build(organizationId, input);
+    return toDetail(await this.repo.checkout(organizationId, data, { method }, userId));
+  }
+
   /** Draft sale for a completed appointment, with its booked service as the first line. */
   async createFromAppointment(appointmentId: string, organizationId: string) {
     const appointment = await this.repo.findAppointment(appointmentId, organizationId);
@@ -191,6 +198,9 @@ export class SalesService {
 
     const resolved = input.items.map((item, i) => {
       const ref = item.catalogItemId ? catalog.get(item.catalogItemId) : undefined;
+      if (ref?.isVariantGroup) {
+        throw new DomainError('INVALID', `line ${i + 1}: '${ref.name}' has variants — choose one (size, color…)`);
+      }
       const description = item.description?.trim() || ref?.name;
       if (!description) throw new DomainError('INVALID', `line ${i + 1}: description is required for free-text lines`);
       const unitPrice = item.unitPrice ?? ref?.price;
