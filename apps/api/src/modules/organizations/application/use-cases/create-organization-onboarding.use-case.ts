@@ -1,3 +1,4 @@
+import { DomainError } from '../../../../shared/contracts/errors/domain.error';
 import {
   ConflictException,
   Inject,
@@ -49,6 +50,11 @@ export class CreateOrganizationOnboardingUseCase {
   ) {}
 
   async execute(command: OnboardingCommand): Promise<OnboardingResult> {
+    // ── Step 0: Paid plans are contracted after sign-up, by paying (POST /billing/checkout)
+    if (command.planName && command.planName !== 'free') {
+      throw new DomainError('INVALID', 'New organizations start on the free plan; subscribe to a paid plan after signing up');
+    }
+
     // ── Step 1: Validate slug uniqueness ──────────────────────────────────────
     if (await this.orgRepo.existsBySlug(command.slug)) {
       throw new ConflictException(`Organization slug '${command.slug}' is already taken`);

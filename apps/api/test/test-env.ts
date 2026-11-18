@@ -11,3 +11,4 @@ process.env.JWT_REFRESH_SECRET = 'e2e-refresh-secret';
 process.env.NODE_ENV = 'test';
 // Clinical attachments go to a throwaway folder during tests
 process.env.UPLOADS_DIR = require('path').join(require('os').tmpdir(), 'dentalflow-test-uploads');
+process.env.MERCADOPAGO_WEBHOOK_SECRET = 'e2e-webhook-secret';

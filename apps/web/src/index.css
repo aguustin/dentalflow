@@ -198,3 +198,9 @@ a.secondary-link { background: none; color: var(--fg); border: 1px solid var(--b
 .report-tables { align-items: flex-start; gap: 32px; flex-wrap: wrap; margin-top: 24px; }
 .report-tables > div { flex: 1; min-width: 280px; }
 .report-tables h2 { font-size: 1.05rem; }
+
+.plans { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; max-width: 900px; }
+.plan-card { display: flex; flex-direction: column; gap: 8px; }
+.plan-card h2 { margin: 0; font-size: 1.1rem; }
+.plan-card ul { margin: 0; padding-left: 18px; }
+.plan-card.current { border-color: var(--accent); border-width: 2px; }

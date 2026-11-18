@@ -768,6 +768,59 @@ model WorkOrderEvent {
   @@map("work_order_events")
 }
 
+// ─── BILLING (SaaS subscription payments) ────────────────────────────────────
+
+/// A subscription attempt: the admin chose a paid plan and was sent to Mercado Pago.
+model BillingCheckout {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  planId          String   @map("plan_id")
+  mpPreapprovalId String   @unique @map("mp_preapproval_id")
+  /// pending | authorized | cancelled (mirrors Mercado Pago)
+  status          String   @default("pending")
+  createdBy       String   @map("created_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("billing_checkouts")
+}
+
+/// A monthly charge of a subscription. mpPaymentId is unique: a repeated notification never duplicates it.
+model BillingPayment {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  mpPaymentId     String   @unique @map("mp_payment_id")
+  mpPreapprovalId String   @map("mp_preapproval_id")
+  /// cents
+  amount          Int
+  currency        String
+  /// approved | rejected | … (Mercado Pago status)
+  status          String
+  paidAt          DateTime? @map("paid_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId, createdAt])
+  @@map("billing_payments")
+}
+
+/// Audit log of incoming webhook notifications (verified ones only).
+model WebhookEvent {
+  id          String    @id @default(uuid())
+  provider    String
+  topic       String
+  resourceId  String    @map("resource_id")
+  requestId   String    @map("request_id")
+  processedAt DateTime? @map("processed_at")
+  error       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@unique([provider, requestId])
+  @@index([provider, topic, resourceId])
+  @@map("webhook_events")
+}
+
 // ─── BILLING ────────────────────────────────────────────────────────────────
 
 enum SubscriptionStatus {
@@ -801,6 +854,10 @@ model Subscription {
   status         SubscriptionStatus @default(ACTIVE)
   startDate      DateTime           @map("start_date")
   endDate        DateTime?          @map("end_date")
+  /// Mercado Pago subscription (preapproval) currently paying for this plan
+  mpPreapprovalId String?           @unique @map("mp_preapproval_id")
+  /// Next charge date reported by Mercado Pago
+  nextPaymentDate DateTime?         @map("next_payment_date")
   createdAt      DateTime           @default(now()) @map("created_at")
   updatedAt      DateTime           @updatedAt @map("updated_at")
 

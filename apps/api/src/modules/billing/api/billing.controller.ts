@@ -21,6 +21,7 @@ import { CreateSubscriptionRequest } from './requests/create-subscription.reques
 import { ChangePlanRequest } from './requests/change-plan.request';
 import { SubscriptionResponse } from './responses/subscription.response';
 import { UsageResponse } from './responses/usage.response';
+import { SubscriptionPaymentsService } from '../application/subscription-payments.service';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('billing')
@@ -31,6 +32,7 @@ export class BillingController {
     private readonly cancelSubscription: CancelSubscriptionUseCase,
     private readonly getUsageStats: GetUsageStatsUseCase,
     private readonly getSubscription: GetSubscriptionUseCase,
+    private readonly payments: SubscriptionPaymentsService,
   ) {}
 
   @Post('subscription')
@@ -71,9 +73,9 @@ export class BillingController {
   @Post('cancel')
   @RequirePermissions('billing.delete')
   @HttpCode(HttpStatus.OK)
-  async cancel(@CurrentUser() user: RequestUser): Promise<SubscriptionResponse> {
-    const dto = await this.cancelSubscription.execute(user.organizationId);
-    return SubscriptionResponse.from(dto);
+  async cancel(@CurrentUser() user: RequestUser) {
+    // Back to the free plan; cancels the Mercado Pago subscription so it stops charging
+    return this.payments.cancel(user.organizationId);
   }
 
   @Get('usage')

@@ -281,7 +281,16 @@ Casi todo es plantilla sobre Catálogo + Ventas + Inventario.
 
 ---
 
-### Fase 9 — Cobro real del SaaS
+### Fase 9 — Cobro real del SaaS ✅ *(completada 2026-11-18, Mercado Pago Suscripciones)*
+
+> **Resultado:** suscripciones de Mercado Pago (preapproval) detrás de `PaymentGateway`. `POST /billing/checkout` →
+> link de Mercado Pago; webhook público `POST /api/v1/webhooks/mercadopago` con verificación de `x-signature`
+> (HMAC, comparación en tiempo constante, anti-replay de 10 min); el estado se consulta siempre a Mercado Pago y se
+> aplica de forma idempotente (cobros con `mpPaymentId` único, registro de avisos). Autorizada → plan activo; cobro
+> rechazado/pausada → pago pendiente; cancelada → plan gratuito. Se cerraron 3 caminos para obtener un plan pago sin
+> pagar (cambio de plan, alta de suscripción y registro). Precios en ARS **provisorios** (Pro $25.000, Enterprise
+> $90.000/mes). Tests solo de lo de alto riesgo (firma, duplicados, planes sin pago, cancelación).
+
 | Tarea | Cómo |
 |---|---|
 | Proveedor | Mercado Pago o Stripe detrás de una interfaz `IPaymentGateway` (es la única abstracción "a futuro" justificada: el proveedor depende del país). |

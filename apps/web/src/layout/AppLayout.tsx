@@ -57,6 +57,7 @@ function Shell() {
           )}
           <NavLink to="/reports">Reportes</NavLink>
           <NavLink to="/users">Usuarios</NavLink>
+          <NavLink to="/billing">Plan y facturación</NavLink>
         </nav>
         <button className="link logout" onClick={() => void logout()}>
           Cerrar sesión

@@ -15,9 +15,13 @@ import { GetUsageStatsUseCase } from './application/use-cases/get-usage-stats.us
 import { GetSubscriptionUseCase } from './application/use-cases/get-subscription.use-case';
 import { BillingController } from './api/billing.controller';
 import { BillingGuard } from './api/guards/billing.guard';
+import { MercadoPagoWebhookController, SubscriptionPaymentsController } from './api/subscription-payments.controller';
+import { SubscriptionPaymentsService } from './application/subscription-payments.service';
+import { PAYMENT_GATEWAY } from './application/payment-gateway.interface';
+import { MercadoPagoGateway } from './infrastructure/mercadopago.gateway';
 
 @Module({
-  controllers: [BillingController],
+  controllers: [BillingController, SubscriptionPaymentsController, MercadoPagoWebhookController],
   providers: [
     // Repositories
     { provide: BILLING_TOKENS.PLAN_REPOSITORY, useClass: PlanPrismaRepository },
@@ -26,6 +30,8 @@ import { BillingGuard } from './api/guards/billing.guard';
 
     // Application services
     BillingGuardService,
+    SubscriptionPaymentsService,
+    { provide: PAYMENT_GATEWAY, useClass: MercadoPagoGateway },
 
     // Use cases
     CreateSubscriptionUseCase,

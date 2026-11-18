@@ -158,7 +158,7 @@ async function main() {
       name: 'free',
       displayName: 'Free',
       price: 0,
-      currency: 'USD',
+      currency: 'ARS',
       features: ['customers', 'appointments'],
       maxCustomers: 10,
       maxAppointments: 30,
@@ -166,8 +166,9 @@ async function main() {
     {
       name: 'pro',
       displayName: 'Pro',
-      price: 49,
-      currency: 'USD',
+      // PROVISIONAL price (ARS/month) — set the real one before going live
+      price: 25000,
+      currency: 'ARS',
       features: ['customers', 'appointments', 'reporting', 'exports'],
       maxCustomers: 500,
       maxAppointments: 2000,
@@ -175,8 +176,9 @@ async function main() {
     {
       name: 'enterprise',
       displayName: 'Enterprise',
-      price: 199,
-      currency: 'USD',
+      // PROVISIONAL price (ARS/month) — set the real one before going live
+      price: 90000,
+      currency: 'ARS',
       features: ['customers', 'appointments', 'reporting', 'exports', 'api_access', 'multi_location'],
       maxCustomers: -1,
       maxAppointments: -1,
@@ -200,6 +202,7 @@ async function main() {
       update: {
         displayName: plan.displayName,
         price: plan.price,
+        currency: plan.currency,
         features: plan.features,
         maxCustomers: plan.maxCustomers,
         maxAppointments: plan.maxAppointments,

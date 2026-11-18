@@ -4,12 +4,15 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import request = require('supertest');
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
+import { PrismaService } from '../src/infrastructure/database/prisma.service';
 
-export async function createTestApp(): Promise<INestApplication> {
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+/** @param providers optional provider overrides, e.g. a fake payment gateway */
+export async function createTestApp(providers: { token: unknown; value: unknown }[] = []): Promise<INestApplication> {
+  let builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideGuard(ThrottlerGuard)
-    .useValue({ canActivate: () => true })
-    .compile();
+    .useValue({ canActivate: () => true });
+  for (const p of providers) builder = builder.overrideProvider(p.token as never).useValue(p.value);
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication();
   configureApp(app);
   await app.init();
@@ -53,7 +56,6 @@ export async function createTenant(app: INestApplication, vertical = 'dental'): 
       ownerFirstName: 'Owner',
       ownerLastName: 'Test',
       ownerPassword: password,
-      planName: 'pro',
       vertical,
     })
     .expect(201);
@@ -64,6 +66,14 @@ export async function createTenant(app: INestApplication, vertical = 'dental'): 
     .expect((res) => {
       if (res.status >= 300) throw new Error(`login failed: ${res.status} ${JSON.stringify(res.body)}`);
     });
+
+  // Tests need the paid plan's limits; outside tests a paid plan is only activated by Mercado Pago
+  const prisma = app.get(PrismaService);
+  const pro = await prisma.plan.findUniqueOrThrow({ where: { name: 'pro' } });
+  await prisma.subscription.update({
+    where: { organizationId: onboarding.body.organization.id },
+    data: { planId: pro.id },
+  });
 
   const token: string = login.body.accessToken;
   return {

@@ -1,3 +1,4 @@
+import { DomainError } from '../../../../shared/contracts/errors/domain.error';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { BILLING_TOKENS } from '../../billing.tokens';
 import { IPlanRepository } from '../../domain/repositories/plan.repository.interface';
@@ -36,6 +37,11 @@ export class ChangePlanUseCase {
     const newPlan = await this.planRepository.findByName(command.newPlanName as PlanName);
     if (!newPlan || !newPlan.isActive) {
       throw new NotFoundException(`Plan '${command.newPlanName}' not found or inactive`);
+    }
+
+    // Paid plans are only activated by Mercado Pago after payment (POST /billing/checkout)
+    if (newPlan.price > 0) {
+      throw new DomainError('INVALID', `'${newPlan.name}' is a paid plan: subscribe through POST /billing/checkout`);
     }
 
     const previousPlanId = subscription.planId;

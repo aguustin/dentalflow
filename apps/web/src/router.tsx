@@ -19,6 +19,7 @@ import { SaleDetailPage } from './pages/sales/SaleDetailPage'
 import { CashPage } from './pages/sales/CashPage'
 import { PosPage } from './pages/sales/PosPage'
 import { ReportsPage } from './pages/reports/ReportsPage'
+import { BillingPage } from './pages/billing/BillingPage'
 import { InventoryPage } from './pages/inventory/InventoryPage'
 import { InventoryItemPage } from './pages/inventory/InventoryItemPage'
 import { ClinicalPage } from './pages/clinical/ClinicalPage'
@@ -233,6 +234,7 @@ export const router = createBrowserRouter([
         ),
       },
       { path: 'reports', element: <ReportsPage /> },
+      { path: 'billing', element: <BillingPage /> },
       { path: 'users', element: <UsersPage /> },
       { path: '*', element: <NotFound /> },
     ],
