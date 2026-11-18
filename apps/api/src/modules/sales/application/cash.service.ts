@@ -34,8 +34,8 @@ export class CashService {
   async close(organizationId: string, userId: string, countedCash: number, notes?: string) {
     const session = await this.prisma.cashSession.findFirst({ where: { organizationId, closedAt: null } });
     if (!session) throw new NotFoundException('There is no open cash session');
-    const { byMethod } = await this.summarize(session.id);
-    const expectedCash = session.openingAmount + byMethod.CASH;
+    const { byMethod, refundsByMethod } = await this.summarize(session.id);
+    const expectedCash = session.openingAmount + byMethod.CASH - refundsByMethod.CASH;
 
     const { count } = await this.prisma.cashSession.updateMany({
       where: { id: session.id, closedAt: null },
@@ -68,7 +68,14 @@ export class CashService {
       byMethod[g.method] = g._sum.amount ?? 0;
       paymentCount += g._count;
     }
-    return { byMethod, paymentCount };
+    const refundGroups = await this.prisma.saleReturn.groupBy({
+      by: ['refundMethod'],
+      where: { cashSessionId: sessionId },
+      _sum: { refundTotal: true },
+    });
+    const refundsByMethod = emptyTotals();
+    for (const g of refundGroups) refundsByMethod[g.refundMethod] = g._sum.refundTotal ?? 0;
+    return { byMethod, refundsByMethod, paymentCount };
   }
 
   private async withSummary(session: {
@@ -80,16 +87,19 @@ export class CashService {
     expectedCash: number | null;
     notes: string | null;
   }) {
-    const { byMethod, paymentCount } = await this.summarize(session.id);
-    const expectedCash = session.expectedCash ?? session.openingAmount + byMethod.CASH;
+    const { byMethod, refundsByMethod, paymentCount } = await this.summarize(session.id);
+    const expectedCash = session.expectedCash ?? session.openingAmount + byMethod.CASH - refundsByMethod.CASH;
+    const sum = (t: Record<string, number>) => Object.values(t).reduce((a, b) => a + b, 0);
     return {
       id: session.id,
       openedAt: session.openedAt,
       openingAmount: session.openingAmount,
       closedAt: session.closedAt,
       byMethod,
+      refundsByMethod,
       paymentCount,
-      totalCollected: Object.values(byMethod).reduce((a, b) => a + b, 0),
+      /** Net of refunds */
+      totalCollected: sum(byMethod) - sum(refundsByMethod),
       expectedCash,
       countedCash: session.countedCash,
       difference: session.countedCash === null ? null : session.countedCash - expectedCash,

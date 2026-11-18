@@ -14,6 +14,8 @@ const DATABASE_URL =
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
+  // Assertions wait up to 15s (slow machines: registration seeds roles and permissions)
+  expect: { timeout: 15_000 },
   retries: 0,
   reporter: 'list',
   use: {

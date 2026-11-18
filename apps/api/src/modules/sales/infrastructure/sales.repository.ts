@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PaymentMethod, Prisma, SaleStatus } from '@prisma/client';
+import { DomainError } from '../../../shared/contracts/errors/domain.error';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { restoreStockForSale, takeStockForSale } from '../../../infrastructure/inventory/stock-ledger';
 import { nextSaleNumber } from '../../../infrastructure/sales/draft-sale';
@@ -28,8 +29,15 @@ export interface SaleWriteData {
 }
 
 const detailInclude = {
-  items: { orderBy: { position: 'asc' } },
+  items: {
+    orderBy: { position: 'asc' },
+    include: { serials: { select: { serial: true, warrantyUntil: true, returnedAt: true }, orderBy: { serial: 'asc' } } },
+  },
   payments: { orderBy: { createdAt: 'asc' } },
+  returns: {
+    orderBy: { createdAt: 'asc' },
+    include: { items: { select: { saleItemId: true, quantity: true, amount: true } } },
+  },
   customer: { select: { name: true } },
   staff: { select: { name: true } },
 } satisfies Prisma.SaleInclude;
@@ -151,6 +159,8 @@ export class SalesRepository {
     data: SaleWriteData,
     payment: { method: PaymentMethod },
     userId: string,
+    /** Serial numbers per line (same order as data.lines), for electronics */
+    serials: (string[] | undefined)[] = [],
   ): Promise<SaleRow> {
     const { lines, appointmentId: _ignored, ...sale } = data;
     return this.prisma.$transaction(async (tx) => {
@@ -175,6 +185,9 @@ export class SalesRepository {
         lines.flatMap((l) => (l.catalogItemId ? [{ catalogItemId: l.catalogItemId, quantity: l.quantity }] : [])),
         userId,
       );
+      if (serials.some((s) => s?.length)) {
+        await recordSerials(tx, organizationId, created.id, lines, serials);
+      }
       if (paid) {
         const session = await tx.cashSession.findFirst({
           where: { organizationId, closedAt: null },
@@ -268,5 +281,39 @@ export class SalesRepository {
       select: { taxRateBps: true },
     });
     return org?.taxRateBps ?? 0;
+  }
+}
+
+/**
+ * Stores the serial numbers sold, with the warranty end from the product's
+ * `attributes.warrantyMonths`. A serial can't be "out" twice (partial unique index).
+ */
+async function recordSerials(
+  tx: Prisma.TransactionClient,
+  organizationId: string,
+  saleId: string,
+  lines: SaleLineData[],
+  serials: (string[] | undefined)[],
+) {
+  const items = await tx.saleItem.findMany({
+    where: { saleId },
+    orderBy: { position: 'asc' },
+    select: { id: true, catalogItem: { select: { attributes: true } } },
+  });
+  for (const [index, list] of serials.entries()) {
+    if (!list?.length) continue;
+    const months = Number((items[index].catalogItem?.attributes as { warrantyMonths?: unknown } | null)?.warrantyMonths);
+    const warrantyUntil = Number.isFinite(months) && months > 0 ? new Date() : null;
+    warrantyUntil?.setMonth(warrantyUntil.getMonth() + months);
+    try {
+      await tx.saleItemSerial.createMany({
+        data: list.map((serial) => ({ organizationId, saleItemId: items[index].id, serial, warrantyUntil })),
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        throw new DomainError('CONFLICT', `A serial number of '${lines[index].description}' is already sold`);
+      }
+      throw err;
+    }
   }
 }

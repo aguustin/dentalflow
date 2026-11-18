@@ -38,6 +38,9 @@ export interface SaleLine {
   unitPrice: number
   discount: number
   total: number
+  /** Units already returned */
+  returnedQuantity: number
+  serials: { serial: string; warrantyUntil: string | null; returnedAt: string | null }[]
 }
 
 export interface SalePayment {
@@ -71,8 +74,30 @@ export interface SaleDetail extends SaleSummary {
   taxTotal: number
   confirmedAt: string | null
   voidedAt: string | null
+  /** Money given back by returns */
+  refundedTotal: number
   items: SaleLine[]
   payments: SalePayment[]
+  returns: SaleReturn[]
+}
+
+export interface SaleReturn {
+  id: string
+  reason: string | null
+  refundTotal: number
+  refundMethod: PaymentMethod
+  createdAt: string
+  items: { saleItemId: string; quantity: number; amount: number }[]
+}
+
+export interface SerialLookup {
+  serial: string
+  product: string
+  sale: { id: string; number: number; date: string }
+  customer: { id: string; name: string } | null
+  warrantyUntil: string | null
+  inWarranty: boolean
+  returnedAt: string | null
 }
 
 export interface CashSession {
@@ -81,6 +106,8 @@ export interface CashSession {
   openingAmount: number
   closedAt: string | null
   byMethod: Record<PaymentMethod, number>
+  /** Refunds given in this session, by method */
+  refundsByMethod: Record<PaymentMethod, number>
   paymentCount: number
   totalCollected: number
   expectedCash: number

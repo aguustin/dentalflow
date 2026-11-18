@@ -46,6 +46,7 @@ const CORE_PERMISSIONS = [
   { resource: 'work_orders', action: 'create' },
   { resource: 'work_orders', action: 'read' },
   { resource: 'work_orders', action: 'update' },
+  { resource: 'reports', action: 'read' },
   { resource: 'billing', action: 'create' },
   { resource: 'billing', action: 'read' },
   { resource: 'billing', action: 'update' },

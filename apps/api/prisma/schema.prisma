@@ -342,6 +342,8 @@ model Sale {
   taxTotal       Int        @default(0) @map("tax_total")
   total          Int        @default(0)
   paidTotal      Int        @default(0) @map("paid_total")
+  /// Money given back by returns (cents)
+  refundedTotal  Int        @default(0) @map("refunded_total")
   notes          String?
   confirmedAt    DateTime?  @map("confirmed_at")
   voidedAt       DateTime?  @map("voided_at")
@@ -357,6 +359,7 @@ model Sale {
   stockMovements StockMovement[]
   treatmentItems TreatmentPlanItem[]
   workOrder      WorkOrder?
+  returns        SaleReturn[]
 
   @@unique([organizationId, number])
   @@index([organizationId, createdAt])
@@ -376,9 +379,13 @@ model SaleItem {
   discount      Int     @default(0)
   total         Int
   position      Int
+  /// Units already returned
+  returnedQuantity Int     @default(0) @map("returned_quantity")
 
-  sale        Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  catalogItem CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+  sale        Sale             @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  catalogItem CatalogItem?     @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+  returnItems SaleReturnItem[]
+  serials     SaleItemSerial[]
 
   @@index([saleId])
   @@map("sale_items")
@@ -408,6 +415,61 @@ model Payment {
   @@map("payments")
 }
 
+/// Return of units of a paid sale, with the money given back.
+model SaleReturn {
+  id             String        @id @default(uuid())
+  organizationId String        @map("organization_id")
+  saleId         String        @map("sale_id")
+  reason         String?
+  /// Money given back (cents)
+  refundTotal    Int           @map("refund_total")
+  refundMethod   PaymentMethod @map("refund_method")
+  /// Cash session open at the time (cash refunds reduce the expected cash)
+  cashSessionId  String?       @map("cash_session_id")
+  createdBy      String        @map("created_by")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  sale        Sale             @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  cashSession CashSession?     @relation(fields: [cashSessionId], references: [id], onDelete: SetNull)
+  items       SaleReturnItem[]
+
+  @@index([saleId])
+  @@index([cashSessionId])
+  @@map("sale_returns")
+}
+
+model SaleReturnItem {
+  id         String @id @default(uuid())
+  returnId   String @map("return_id")
+  saleItemId String @map("sale_item_id")
+  quantity   Int
+  /// Refunded for these units (cents)
+  amount     Int
+
+  saleReturn SaleReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  saleItem   SaleItem   @relation(fields: [saleItemId], references: [id], onDelete: Cascade)
+
+  @@index([returnId])
+  @@map("sale_return_items")
+}
+
+/// Serial number of a sold unit (electronics), with its warranty.
+model SaleItemSerial {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  saleItemId     String    @map("sale_item_id")
+  serial         String
+  warrantyUntil  DateTime? @map("warranty_until")
+  /// Set when the unit is returned (the serial can then be sold again)
+  returnedAt     DateTime? @map("returned_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  saleItem SaleItem @relation(fields: [saleItemId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, serial])
+  @@map("sale_item_serials")
+}
+
 /// Daily cash register. At most one open session per organization (partial unique index in SQL).
 model CashSession {
   id             String    @id @default(uuid())
@@ -425,6 +487,7 @@ model CashSession {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   payments     Payment[]
+  returns      SaleReturn[]
 
   @@index([organizationId, openedAt])
   @@map("cash_sessions")
@@ -437,6 +500,7 @@ enum StockMovementType {
   ADJUSTMENT
   SALE
   SALE_VOID
+  RETURN
 }
 
 /// Append-only stock ledger. `quantity` is the signed change; `balanceAfter` the resulting stock.

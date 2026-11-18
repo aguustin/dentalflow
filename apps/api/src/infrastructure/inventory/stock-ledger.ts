@@ -269,3 +269,50 @@ export async function consumeReservations(
   }
   await tx.stockReservation.deleteMany({ where: { workOrderId } });
 }
+
+// ── Returns ─────────────────────────────────────────────────────────────────
+
+/**
+ * Puts back units returned from a sale — only what that sale actually took from stock
+ * for that item (net of previous voids/returns), so untracked or already-restored units
+ * never inflate the stock. Returns how many units went back.
+ */
+export async function returnStockForSale(
+  tx: Tx,
+  organizationId: string,
+  saleId: string,
+  catalogItemId: string,
+  quantity: number,
+  userId?: string,
+): Promise<number> {
+  const moved = await tx.stockMovement.aggregate({
+    where: {
+      saleId,
+      catalogItemId,
+      type: { in: [StockMovementType.SALE, StockMovementType.SALE_VOID, StockMovementType.RETURN] },
+    },
+    _sum: { quantity: true },
+  });
+  const stillOut = -(moved._sum.quantity ?? 0);
+  const units = Math.min(quantity, stillOut);
+  if (units <= 0) return 0;
+
+  const [row] = await tx.$queryRaw<{ stock_quantity: number }[]>`
+    UPDATE "catalog_items" SET "stock_quantity" = "stock_quantity" + ${units}
+    WHERE "id" = ${catalogItemId} AND "organization_id" = ${organizationId}
+    RETURNING "stock_quantity"`;
+  if (!row) return 0;
+  await tx.stockMovement.create({
+    data: {
+      organizationId,
+      catalogItemId,
+      type: StockMovementType.RETURN,
+      quantity: units,
+      balanceAfter: row.stock_quantity,
+      saleId,
+      note: 'Devolución',
+      createdBy: userId ?? null,
+    },
+  });
+  return units;
+}

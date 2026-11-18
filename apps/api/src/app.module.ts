@@ -24,6 +24,7 @@ import { SalesModule } from './modules/sales/sales.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { ClinicalModule } from './modules/clinical/clinical.module';
 import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { OrganizationOnboardingModule } from './modules/organizations/organizations.module';
 
@@ -70,6 +71,7 @@ import { TenantResolutionMiddleware } from './shared/middleware/tenant-resolutio
     InventoryModule,
     ClinicalModule,
     WorkOrdersModule,
+    ReportsModule,
     BillingModule,
   ],
   providers: [

@@ -23,6 +23,7 @@ import { RequirePermissions } from '../../../shared/decorators/require-permissio
 import { RequestUser } from '../../../shared/types/request-user.type';
 import { CashService } from '../application/cash.service';
 import { SalesService } from '../application/sales.service';
+import { ReturnsService } from '../application/returns.service';
 
 const MAX_AMOUNT = 1_000_000_000; // cents
 
@@ -57,6 +58,52 @@ class SaleLineRequest {
   @Min(0)
   @Max(MAX_AMOUNT)
   discount?: number;
+
+  @ApiPropertyOptional({ description: 'Checkout only: one serial number per unit (electronics)' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(1000)
+  @IsString({ each: true })
+  @MaxLength(100, { each: true })
+  serials?: string[];
+}
+
+class ReturnLineRequest {
+  @ApiProperty()
+  @IsUUID()
+  saleItemId: string;
+
+  @ApiProperty()
+  @IsInt()
+  @Min(1)
+  @Max(100_000)
+  quantity: number;
+
+  @ApiPropertyOptional({ description: 'Required for lines sold with serial numbers' })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @MaxLength(100, { each: true })
+  serials?: string[];
+}
+
+class ReturnRequest {
+  @ApiProperty({ type: [ReturnLineRequest] })
+  @IsArray()
+  @ArrayMaxSize(200)
+  @ValidateNested({ each: true })
+  @Type(() => ReturnLineRequest)
+  items: ReturnLineRequest[];
+
+  @ApiProperty({ enum: PaymentMethod, description: 'How the money is given back' })
+  @IsEnum(PaymentMethod)
+  refundMethod: PaymentMethod;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  reason?: string;
 }
 
 class SaleRequest {
@@ -161,7 +208,26 @@ class ListSalesRequest {
 @RequireModule('sales')
 @Controller('sales')
 export class SalesController {
-  constructor(private readonly sales: SalesService) {}
+  constructor(
+    private readonly sales: SalesService,
+    private readonly returns: ReturnsService,
+  ) {}
+
+  // Declared before ':id'
+  @Get('serials/:serial')
+  @RequirePermissions('sales.read')
+  @ApiOperation({ summary: 'Who bought a serial number, when, and whether it is under warranty' })
+  serial(@Param('serial') serial: string, @CurrentUser() actor: RequestUser) {
+    return this.returns.findSerial(actor.organizationId, serial);
+  }
+
+  @Post(':id/returns')
+  @RequirePermissions('sales.update')
+  @ApiOperation({ summary: 'Return units of a paid sale: stock back, money refunded, serials released' })
+  async createReturn(@Param('id') id: string, @Body() body: ReturnRequest, @CurrentUser() actor: RequestUser) {
+    await this.returns.create(id, actor.organizationId, actor.userId, body);
+    return this.sales.get(id, actor.organizationId);
+  }
 
   @Get()
   @RequirePermissions('sales.read')

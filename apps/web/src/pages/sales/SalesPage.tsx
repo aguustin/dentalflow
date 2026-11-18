@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { Paginated, SaleStatus, SaleSummary } from '@dentalflow/types'
-import { api } from '../../lib/api'
+import { Paginated, SaleStatus, SaleSummary, SerialLookup } from '@dentalflow/types'
+import { api, ApiError } from '../../lib/api'
 import { useMoney } from '../../lib/money'
 import { useTerms } from '../../org/OrganizationContext'
 import { STATUS_LABELS } from './labels'
@@ -39,6 +39,7 @@ export function SalesPage() {
           </Link>
         </div>
       </div>
+      <SerialSearch />
       <div className="row filters">
         <select
           value={status}
@@ -104,5 +105,54 @@ export function SalesPage() {
         </>
       )}
     </section>
+  )
+}
+
+/** Who bought a serial number, and whether it is still under warranty. */
+function SerialSearch() {
+  const [serial, setSerial] = useState('')
+  const [result, setResult] = useState<SerialLookup[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function search() {
+    setError(null)
+    setResult(null)
+    try {
+      setResult(await api<SerialLookup[]>(`/sales/serials/${encodeURIComponent(serial.trim())}`))
+    } catch (err) {
+      setError(err instanceof ApiError && err.status === 404 ? 'No se encontró ese número de serie.' : String(err))
+    }
+  }
+
+  return (
+    <div className="serial-search">
+      <form
+        className="row"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (serial.trim()) void search()
+        }}
+      >
+        <input placeholder="Buscar Nº de serie / IMEI" value={serial} onChange={(e) => setSerial(e.target.value)} aria-label="Número de serie" />
+        <button type="submit" className="secondary">
+          Buscar
+        </button>
+      </form>
+      {error && <p className="muted">{error}</p>}
+      {result?.map((r, i) => (
+        <p key={i} className={r.inWarranty ? 'alert-ok' : 'alert'}>
+          {r.serial}: {r.product} · <Link to={`/sales/${r.sale.id}`}>venta #{r.sale.number}</Link> del{' '}
+          {new Date(r.sale.date).toLocaleDateString('es-AR')}
+          {r.customer && ` · ${r.customer.name}`} ·{' '}
+          {r.returnedAt
+            ? 'devuelto'
+            : r.inWarranty
+              ? `en garantía hasta ${new Date(r.warrantyUntil!).toLocaleDateString('es-AR')}`
+              : r.warrantyUntil
+                ? 'garantía vencida'
+                : 'sin garantía'}
+        </p>
+      ))}
+    </div>
   )
 }

@@ -138,8 +138,14 @@ function Breakdown({ session }: { session: CashSession }) {
       {(Object.keys(METHOD_LABELS) as PaymentMethod[]).map((m) => (
         <FragmentRow key={m} label={METHOD_LABELS[m]} value={money(session.byMethod[m])} />
       ))}
+      {Object.values(session.refundsByMethod).some((v) => v > 0) && (
+        <FragmentRow
+          label="Reintegros por devoluciones"
+          value={`−${money(Object.values(session.refundsByMethod).reduce((a, b) => a + b, 0))}`}
+        />
+      )}
       <dt>
-        <strong>Total cobrado</strong>
+        <strong>Total cobrado (neto)</strong>
       </dt>
       <dd>
         <strong>{money(session.totalCollected)}</strong> ({session.paymentCount} pagos)

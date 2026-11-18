@@ -71,4 +71,17 @@ test('clothing store: variants, barcode and point-of-sale checkout', async ({ pa
 
   await page.getByRole('link', { name: 'Inventario' }).click()
   await expect(page.getByRole('row', { name: /M \/ Negro/ })).toContainText('3')
+
+  // ── Return one unit: refund and stock back to that variant ────────────────
+  await page.getByRole('link', { name: 'Punto de venta' }).click()
+  await page.getByRole('link', { name: 'Ventas' }).last().click()
+  await page.getByRole('link', { name: '#1' }).click()
+  await page.getByLabel('Unidades a devolver de Remera básica · M / Negro').fill('1')
+  await page.getByLabel('Motivo').fill('Talle incorrecto')
+  await page.getByRole('button', { name: 'Devolver 1 unidad(es)' }).click()
+  await expect(page.getByText('Reintegrado')).toBeVisible()
+  await expect(page.locator('.summary')).toContainText('−$ 12.000,00')
+
+  await page.getByRole('link', { name: 'Inventario' }).click()
+  await expect(page.getByRole('row', { name: /M \/ Negro/ })).toContainText('4')
 })

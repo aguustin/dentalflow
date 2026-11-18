@@ -55,6 +55,7 @@ function Shell() {
           {(org.enabledModules.includes('scheduling') || org.enabledModules.includes('work_orders')) && (
             <NavLink to="/staff">{terms.staff.plural}</NavLink>
           )}
+          <NavLink to="/reports">Reportes</NavLink>
           <NavLink to="/users">Usuarios</NavLink>
         </nav>
         <button className="link logout" onClick={() => void logout()}>

@@ -233,7 +233,7 @@ El bloque es genérico: sirve después para cerrajería, electricistas, electrod
 
 ---
 
-### Fase 7 — Retail (Ropa y Tecnología) 🟡 *(entrega A completada 2026-11-17)*
+### Fase 7 — Retail (Ropa y Tecnología) ✅ *(entregas A y B completadas 2026-11-18)*
 
 > **Entrega A:** rubros `retail_clothing` y `retail_tech` (inicio en el punto de venta vía `homeRoute`, campos de
 > producto `productAttributes`, ejes de variantes sugeridos, roles `cashier` y `stock_keeper`). Variantes como ítems
@@ -242,7 +242,12 @@ El bloque es genérico: sirve después para cerrajería, electricistas, electrod
 > tiene stock (CHECK en la base). Generador de combinaciones que solo crea las faltantes. Código de barras único por
 > org y `GET /catalog/lookup` para lectores. Cobro de punto de venta (`POST /sales/checkout`): venta pagada + stock +
 > pago en una sola transacción (sin stock no queda nada creado).
-> **Entrega B pendiente:** devoluciones/cambios con reintegro, nº de serie y garantía.
+> **Entrega B:** devoluciones de ventas pagadas (`POST /sales/:id/returns`): el total cobrado se reparte entre líneas
+> (resto mayor) y cada devolución reintegra de forma acumulativa, así devolver todo suma exactamente lo cobrado;
+> nunca más de lo vendido (guardas optimistas + CHECK), el stock vuelve a la variante exacta solo si la venta lo había
+> descontado, reintegros en la caja (restan del efectivo esperado). Cambios = devolución + punto de venta.
+> Nº de serie por unidad al cobrar, garantía según `warrantyMonths` del producto, una serie activa por org (índice
+> único parcial) y búsqueda `GET /sales/serials/:serial`.
 Casi todo es plantilla sobre Catálogo + Ventas + Inventario.
 
 | Tarea | Cómo |
@@ -258,7 +263,14 @@ Casi todo es plantilla sobre Catálogo + Ventas + Inventario.
 
 ---
 
-### Fase 8 — Reportes
+### Fase 8 — Reportes ✅ *(completada 2026-11-18)*
+
+> **Resultado:** `GET /reports/summary?from&to` (días en la zona horaria de la org) con secciones según módulos
+> habilitados: ventas (netas de reintegros, ticket promedio, por día, más vendidos, cobrado por medio), agenda
+> (por estado, ausentismo, por profesional), inventario (stock valorizado a precio de venta: todavía no hay costo),
+> órdenes de trabajo (ingresadas, entregadas, tiempo promedio de reparación, abiertas por estado) y clientes nuevos.
+> `GET /reports/sales.csv` para Excel en español (`;`, coma decimal, BOM). Permiso `reports.read` solo para admin.
+> Sin tests (solo lectura, bajo riesgo).
 | Tarea | Cómo |
 |---|---|
 | KPIs | Consultas SQL agregadas (Prisma `$queryRaw`) por período: ventas, ticket promedio, top ítems, ocupación de la agenda, ausencias (no-show), stock valorizado, órdenes por estado y tiempo promedio de reparación. |

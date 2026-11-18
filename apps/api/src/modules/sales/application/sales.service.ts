@@ -19,6 +19,8 @@ export interface SaleLineInput {
   /** Defaults to the catalog item's current price */
   unitPrice?: number;
   discount?: number;
+  /** Serial numbers of the units sold (checkout only); one per unit */
+  serials?: string[];
 }
 
 export interface SaleInput {
@@ -129,8 +131,16 @@ export class SalesService {
   /** Point of sale: create, take stock and collect the full amount atomically. */
   async checkout(organizationId: string, userId: string, input: SaleInput, method: PaymentMethod) {
     if (input.items.length === 0) throw new DomainError('INVALID', 'The cart is empty');
+    const serials = input.items.map((item, i) => {
+      if (!item.serials?.length) return undefined;
+      const list = [...new Set(item.serials.map((s) => s.trim()).filter(Boolean))];
+      if (list.length !== item.quantity) {
+        throw new DomainError('INVALID', `line ${i + 1}: enter one distinct serial number per unit (${item.quantity})`);
+      }
+      return list;
+    });
     const data = await this.build(organizationId, input);
-    return toDetail(await this.repo.checkout(organizationId, data, { method }, userId));
+    return toDetail(await this.repo.checkout(organizationId, data, { method }, userId, serials));
   }
 
   /** Draft sale for a completed appointment, with its booked service as the first line. */
@@ -246,6 +256,7 @@ function toDetail(s: SaleRow) {
     total: s.total,
     paidTotal: s.paidTotal,
     balance: s.total - s.paidTotal,
+    refundedTotal: s.refundedTotal,
     confirmedAt: s.confirmedAt,
     voidedAt: s.voidedAt,
     createdAt: s.createdAt,
@@ -257,7 +268,17 @@ function toDetail(s: SaleRow) {
       unitPrice: i.unitPrice,
       discount: i.discount,
       total: i.total,
+      returnedQuantity: i.returnedQuantity,
+      serials: i.serials,
     })),
     payments: s.payments.map((p) => ({ id: p.id, method: p.method, amount: p.amount, createdAt: p.createdAt })),
+    returns: s.returns.map((r) => ({
+      id: r.id,
+      reason: r.reason,
+      refundTotal: r.refundTotal,
+      refundMethod: r.refundMethod,
+      createdAt: r.createdAt,
+      items: r.items,
+    })),
   };
 }

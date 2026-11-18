@@ -7,6 +7,7 @@ import { useMoney } from '../../lib/money'
 import { useTerms } from '../../org/OrganizationContext'
 import { MoneyInput } from '../../components/MoneyInput'
 import { METHOD_LABELS, STATUS_LABELS } from './labels'
+import { ReturnPanel } from './ReturnPanel'
 
 export function SaleDetailPage() {
   const { id } = useParams()
@@ -70,7 +71,22 @@ export function SaleDetailPage() {
           )}
           {sale.items.map((i) => (
             <tr key={i.id}>
-              <td>{i.description}</td>
+              <td>
+                {i.description}
+                {i.returnedQuantity > 0 && <span className="badge">{i.returnedQuantity} devuelta(s)</span>}
+                {i.serials.length > 0 && (
+                  <div className="small muted">
+                    {i.serials.map((s) => (
+                      <span key={s.serial} className={s.returnedAt ? 'inactive' : undefined}>
+                        Nº {s.serial}
+                        {s.warrantyUntil && ` · garantía hasta ${new Date(s.warrantyUntil).toLocaleDateString('es-AR')}`}
+                        {s.returnedAt && ' (devuelto)'}
+                        <br />
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </td>
               <td className="num">{i.quantity}</td>
               <td className="num">{money(i.unitPrice)}</td>
               <td className="num">{i.discount ? money(i.discount) : '—'}</td>
@@ -105,6 +121,12 @@ export function SaleDetailPage() {
         <dd>{money(sale.paidTotal)}</dd>
         <dt>Saldo</dt>
         <dd>{money(sale.balance)}</dd>
+        {sale.refundedTotal > 0 && (
+          <>
+            <dt>Reintegrado</dt>
+            <dd>−{money(sale.refundedTotal)}</dd>
+          </>
+        )}
       </dl>
 
       <div className="actions">
@@ -148,6 +170,24 @@ export function SaleDetailPage() {
         )}
         {canPay && <PaymentForm sale={sale} onPaid={refresh} />}
       </div>
+
+      {(sale.status === 'PAID' || sale.returns.length > 0) && (
+        <div className="section">
+          <h2>Devoluciones</h2>
+          {sale.returns.length > 0 && (
+            <ul className="plain-list">
+              {sale.returns.map((r) => (
+                <li key={r.id}>
+                  {new Date(r.createdAt).toLocaleString('es-AR')} · {r.items.reduce((n, i) => n + i.quantity, 0)} unidad(es) ·
+                  reintegro <strong>{money(r.refundTotal)}</strong> en {METHOD_LABELS[r.refundMethod].toLowerCase()}
+                  {r.reason && <span className="muted"> · {r.reason}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          {sale.status === 'PAID' && <ReturnPanel sale={sale} onDone={refresh} />}
+        </div>
+      )}
     </section>
   )
 }

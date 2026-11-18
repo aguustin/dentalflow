@@ -12,6 +12,8 @@ import { METHOD_LABELS } from './labels'
 interface CartLine {
   item: CatalogItem
   quantity: number
+  /** Comma-separated serial numbers (electronics) */
+  serials?: string
 }
 
 /**
@@ -31,6 +33,8 @@ export function PosPage() {
   const [received, setReceived] = useState<number | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [lastSale, setLastSale] = useState<SaleDetail | null>(null)
+  // Verticals whose products carry a warranty sell serialized units
+  const tracksSerials = !!org.vertical.productAttributes?.some((f) => f.key === 'warrantyMonths')
 
   const cash = useQuery({
     queryKey: ['cash', 'current'],
@@ -87,7 +91,10 @@ export function PosPage() {
         method: 'POST',
         body: {
           customerId: customer?.id,
-          items: cart.map((l) => ({ catalogItemId: l.item.id, quantity: l.quantity })),
+          items: cart.map((l) => {
+            const serials = (l.serials ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+            return { catalogItemId: l.item.id, quantity: l.quantity, ...(serials.length > 0 && { serials }) }
+          }),
           payment: { method },
         },
       }),
@@ -161,7 +168,18 @@ export function PosPage() {
               <tbody>
                 {cart.map((l) => (
                   <tr key={l.item.id}>
-                    <td>{l.item.name}</td>
+                    <td>
+                      {l.item.name}
+                      {tracksSerials && (
+                        <input
+                          className="serials"
+                          placeholder={`Nº de serie (${l.quantity}, separados por coma)`}
+                          value={l.serials ?? ''}
+                          aria-label={`Números de serie de ${l.item.name}`}
+                          onChange={(e) => setCart((c) => c.map((x) => (x.item.id === l.item.id ? { ...x, serials: e.target.value } : x)))}
+                        />
+                      )}
+                    </td>
                     <td>
                       <input
                         type="number"
