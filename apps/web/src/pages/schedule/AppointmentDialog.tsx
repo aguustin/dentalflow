@@ -8,6 +8,7 @@ import { api } from '../../lib/api'
 import { formatTime, fromInputs, toDateInput, toTimeInput } from '../../lib/dates'
 import { useTerms } from '../../org/OrganizationContext'
 import { CustomerPicker, PickedCustomer } from '../../components/CustomerPicker'
+import { APPOINTMENT_CATEGORY, StatusBadge } from '../../design-system/StatusBadge'
 
 export const STATUS_LABELS: Record<AppointmentStatus, string> = {
   SCHEDULED: 'Agendado',
@@ -163,7 +164,9 @@ export function AppointmentDialog({ appointment, defaultStart, defaultStaffId, o
       <form className="card form dialog" onSubmit={onSubmit} onClick={(e) => e.stopPropagation()}>
         <div className="toolbar">
           <h1>{isNew ? `Nuevo ${terms.appointment.singular.toLowerCase()}` : terms.appointment.singular}</h1>
-          {appointment && <span className={`badge ${appointment.status}`}>{STATUS_LABELS[appointment.status]}</span>}
+          {appointment && (
+            <StatusBadge category={APPOINTMENT_CATEGORY[appointment.status]} label={STATUS_LABELS[appointment.status]} />
+          )}
         </div>
 
         {noStaff && (

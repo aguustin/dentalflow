@@ -8,6 +8,7 @@ import { useTerms } from '../../org/OrganizationContext'
 import { MoneyInput } from '../../components/MoneyInput'
 import { METHOD_LABELS, STATUS_LABELS } from './labels'
 import { ReturnPanel } from './ReturnPanel'
+import { SALE_CATEGORY, StatusBadge } from '../../design-system/StatusBadge'
 
 export function SaleDetailPage() {
   const { id } = useParams()
@@ -42,7 +43,7 @@ export function SaleDetailPage() {
       <Link to="/sales">← Ventas</Link>
       <div className="toolbar">
         <h1>Venta #{sale.number}</h1>
-        <span className={`badge sale-${sale.status}`}>{STATUS_LABELS[sale.status]}</span>
+        <StatusBadge category={SALE_CATEGORY[sale.status]} label={STATUS_LABELS[sale.status]} />
       </div>
       <p className="muted">
         {new Date(sale.createdAt).toLocaleString('es-AR')}

@@ -16,7 +16,11 @@
     "@dentalflow/config": "workspace:*",
     "@dentalflow/types": "workspace:*",
     "@dentalflow/ui": "workspace:*",
+    "@fontsource-variable/inter": "^5.1.0",
+    "@fontsource-variable/space-grotesk": "^5.1.0",
+    "@fontsource/jetbrains-mono": "^5.1.0",
     "@tanstack/react-query": "^5.62.0",
+    "lucide-react": "^0.460.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"

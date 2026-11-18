@@ -6,6 +6,7 @@ import { api } from '../../lib/api'
 import { useMoney } from '../../lib/money'
 import { useTerms } from '../../org/OrganizationContext'
 import { BOARD_COLUMNS, WO_STATUS_LABELS } from './labels'
+import { StatusBadge, WORK_ORDER_CATEGORY } from '../../design-system/StatusBadge'
 
 /** Home of the repair verticals: open orders in columns by status. */
 export function WorkOrdersBoard() {
@@ -73,7 +74,9 @@ export function WorkOrdersBoard() {
                 </td>
                 <td>{o.customerName}</td>
                 <td>{o.assetLabel ?? '—'}</td>
-                <td>{WO_STATUS_LABELS[o.status]}</td>
+                <td>
+                  <StatusBadge category={WORK_ORDER_CATEGORY[o.status]} label={WO_STATUS_LABELS[o.status]} />
+                </td>
                 <td className="num">{money(o.itemsTotal)}</td>
               </tr>
             ))}

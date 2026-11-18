@@ -6,6 +6,7 @@ import { api, ApiError } from '../../lib/api'
 import { useMoney } from '../../lib/money'
 import { useTerms } from '../../org/OrganizationContext'
 import { STATUS_LABELS } from './labels'
+import { SALE_CATEGORY, StatusBadge } from '../../design-system/StatusBadge'
 
 const PAGE_SIZE = 30
 
@@ -84,7 +85,9 @@ export function SalesPage() {
                   </td>
                   <td>{new Date(s.createdAt).toLocaleDateString('es-AR')}</td>
                   <td>{s.customerName ?? '—'}</td>
-                  <td>{STATUS_LABELS[s.status]}</td>
+                  <td>
+                    <StatusBadge category={SALE_CATEGORY[s.status]} label={STATUS_LABELS[s.status]} />
+                  </td>
                   <td className="num">{money(s.total)}</td>
                   <td className="num">{s.balance > 0 && s.status !== 'DRAFT' && s.status !== 'VOIDED' ? money(s.balance) : '—'}</td>
                 </tr>

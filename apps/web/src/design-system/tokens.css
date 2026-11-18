@@ -1,0 +1,206 @@
+/*
+ * Velatrix One — design tokens. Source of truth: docs/product/design-system.md
+ * Components use ONLY semantic tokens (never raw HEX).
+ *
+ * Theme selection: <html data-theme="light|dark"> forces a theme; without it
+ * the OS preference applies ("Automático").
+ */
+
+:root {
+  /* ── Brand primitives ─────────────────────────────────────────────────── */
+  --green-50: #e6fdf1;
+  --green-100: #c2f9dc;
+  --green-200: #8df3bf;
+  --green-300: #4dec9c;
+  --green-400: #1fe884;
+  --green-500: #00e676; /* Velatrix */
+  --green-600: #00c764;
+  --green-700: #00a353;
+  --green-800: #00824a;
+  --green-900: #00663a;
+  --green-950: #003d23;
+  --teal-400: #00c9a7;
+  --brand-gradient: linear-gradient(135deg, #00e676 0%, #00c9a7 100%);
+
+  --graphite-950: #0a0b0d;
+  --graphite-900: #111317;
+  --graphite-850: #1a1b1e; /* brand graphite */
+  --graphite-800: #22252a;
+  --graphite-700: #2e3138;
+  --graphite-600: #4b5563; /* brand slate */
+  --graphite-500: #6b7280;
+  --graphite-400: #9ca3af;
+  --graphite-300: #cbd2db;
+  --graphite-200: #e2e6eb;
+  --graphite-100: #f1f4f7;
+  --graphite-50: #f8fafc; /* brand white */
+
+  /* Edition color — strictly secondary (never actions, active nav, focus, brand, states) */
+  --edition: #22d3ee; /* Clinic */
+
+  /* Chart categorical palette, ordered for distinction */
+  --chart-1: #00e676;
+  --chart-2: #38bdf8;
+  --chart-3: #f59e0b;
+  --chart-4: #a78bfa;
+  --chart-5: #f472b6;
+  --chart-6: #94a3b8;
+
+  /* ── Typography ───────────────────────────────────────────────────────── */
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  /* ── Shape & motion ───────────────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 999px;
+  --control-h: 38px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --duration: 140ms;
+
+  /* ── Sidebar: dark in every theme (brand anchor) ──────────────────────── */
+  --sidebar-bg: var(--graphite-950);
+  --sidebar-border: var(--graphite-850);
+  --sidebar-text: var(--graphite-400);
+  --sidebar-text-strong: var(--graphite-50);
+  --sidebar-hover: var(--graphite-850);
+  --sidebar-active: var(--green-500);
+  --sidebar-active-bg: rgb(0 230 118 / 0.1);
+  --sidebar-label: var(--graphite-500);
+}
+
+/* ── Light theme (default values) ─────────────────────────────────────── */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: var(--graphite-50);
+  --surface: #ffffff;
+  --surface-2: var(--graphite-100);
+  --surface-3: #ffffff;
+  --border: var(--graphite-200);
+  --border-strong: var(--graphite-300);
+  --input-border: #858c99; /* 3.4:1 on white: form controls must be identifiable */
+  --text: var(--graphite-950);
+  --text-muted: var(--graphite-600); /* 7.6:1 on white */
+  --text-subtle: var(--graphite-500); /* 4.8:1 on white */
+  --accent: var(--green-500);
+  --accent-hover: var(--green-600);
+  --accent-pressed: var(--green-700);
+  --on-accent: var(--graphite-950);
+  --accent-text: var(--green-800); /* 4.9:1 on white */
+  --accent-soft: var(--green-50);
+  --focus-ring: var(--green-700); /* 3.3:1 on white */
+  --overlay: rgb(10 11 13 / 0.45);
+  --shadow-sm: 0 1px 2px rgb(10 11 13 / 0.06);
+  --shadow-md: 0 1px 2px rgb(10 11 13 / 0.06), 0 4px 12px rgb(10 11 13 / 0.06);
+  --shadow-lg: 0 8px 28px rgb(10 11 13 / 0.14);
+  --skeleton: var(--graphite-100);
+
+  /* Status categories (text / background / border) */
+  --st-pending-fg: #b45309;
+  --st-pending-bg: #fef3c7;
+  --st-confirmed-fg: #0369a1;
+  --st-confirmed-bg: #e0f2fe;
+  --st-progress-fg: #6d28d9;
+  --st-progress-bg: #ede9fe;
+  --st-done-fg: var(--green-800);
+  --st-done-bg: var(--green-50);
+  --st-cancelled-fg: var(--graphite-600);
+  --st-cancelled-bg: var(--graphite-100);
+  --st-problem-fg: #dc2626;
+  --st-problem-bg: #fee2e2;
+
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --on-danger: #ffffff;
+}
+
+/* ── Dark theme: the original Velatrix identity ───────────────────────── */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: var(--graphite-950);
+  --surface: var(--graphite-900);
+  --surface-2: var(--graphite-850);
+  --surface-3: var(--graphite-800);
+  --border: #26282d;
+  --border-strong: var(--graphite-700);
+  --input-border: #626b79; /* 3:1 on #111317 */
+  --text: var(--graphite-50);
+  --text-muted: var(--graphite-400); /* 7.7:1 on #0A0B0D */
+  --text-subtle: #8b93a1;
+  --accent: var(--green-500);
+  --accent-hover: var(--green-400);
+  --accent-pressed: var(--green-600);
+  --on-accent: var(--graphite-950);
+  --accent-text: var(--green-500);
+  --accent-soft: rgb(0 230 118 / 0.1);
+  --focus-ring: var(--green-500);
+  --overlay: rgb(0 0 0 / 0.6);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5);
+  --skeleton: var(--graphite-850);
+
+  --st-pending-fg: #fbbf24;
+  --st-pending-bg: rgb(251 191 36 / 0.12);
+  --st-confirmed-fg: #38bdf8;
+  --st-confirmed-bg: rgb(56 189 248 / 0.12);
+  --st-progress-fg: #c4b5fd;
+  --st-progress-bg: rgb(167 139 250 / 0.14);
+  --st-done-fg: var(--green-400);
+  --st-done-bg: rgb(0 230 118 / 0.12);
+  --st-cancelled-fg: var(--graphite-400);
+  --st-cancelled-bg: rgb(156 163 175 / 0.12);
+  --st-problem-fg: #f87171;
+  --st-problem-bg: rgb(248 113 113 / 0.12);
+
+  --danger: #ef4444;
+  --danger-hover: #f87171;
+  --on-danger: #ffffff;
+}
+
+/* "Automático": follow the OS when no theme is forced */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: var(--graphite-950);
+    --surface: var(--graphite-900);
+    --surface-2: var(--graphite-850);
+    --surface-3: var(--graphite-800);
+    --border: #26282d;
+    --border-strong: var(--graphite-700);
+    --input-border: #626b79;
+    --text: var(--graphite-50);
+    --text-muted: var(--graphite-400);
+    --text-subtle: #8b93a1;
+    --accent: var(--green-500);
+    --accent-hover: var(--green-400);
+    --accent-pressed: var(--green-600);
+    --on-accent: var(--graphite-950);
+    --accent-text: var(--green-500);
+    --accent-soft: rgb(0 230 118 / 0.1);
+    --focus-ring: var(--green-500);
+    --overlay: rgb(0 0 0 / 0.6);
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5);
+    --skeleton: var(--graphite-850);
+    --st-pending-fg: #fbbf24;
+    --st-pending-bg: rgb(251 191 36 / 0.12);
+    --st-confirmed-fg: #38bdf8;
+    --st-confirmed-bg: rgb(56 189 248 / 0.12);
+    --st-progress-fg: #c4b5fd;
+    --st-progress-bg: rgb(167 139 250 / 0.14);
+    --st-done-fg: var(--green-400);
+    --st-done-bg: rgb(0 230 118 / 0.12);
+    --st-cancelled-fg: var(--graphite-400);
+    --st-cancelled-bg: rgb(156 163 175 / 0.12);
+    --st-problem-fg: #f87171;
+    --st-problem-bg: rgb(248 113 113 / 0.12);
+    --danger: #ef4444;
+    --danger-hover: #f87171;
+    --on-danger: #ffffff;
+  }
+}

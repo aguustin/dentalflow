@@ -6,6 +6,7 @@ import { api } from '../../lib/api'
 import { useMoney } from '../../lib/money'
 import { useHasModule } from '../../org/OrganizationContext'
 import { MoneyInput } from '../../components/MoneyInput'
+import { StatusBadge, TREATMENT_CATEGORY } from '../../design-system/StatusBadge'
 
 const STATUS_LABELS: Record<TreatmentItemStatus, string> = {
   PROPOSED: 'Propuesto',
@@ -126,7 +127,7 @@ function PlanCard({ customerId, plan }: { customerId: string; plan: TreatmentPla
                 </td>
                 <td className="num">{money(item.price)}</td>
                 <td>
-                  {STATUS_LABELS[item.status]}
+                  <StatusBadge category={TREATMENT_CATEGORY[item.status]} label={STATUS_LABELS[item.status]} />
                   {item.sale && item.sale.status !== 'VOIDED' && (
                     <>
                       {' · '}

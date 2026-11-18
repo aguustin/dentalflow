@@ -9,6 +9,7 @@ import { MoneyInput } from '../../components/MoneyInput'
 import { useActiveStaff } from '../schedule/AppointmentDialog'
 import { CatalogItemPicker } from '../sales/SaleEditorPage'
 import { TRANSITION_LABELS, WO_STATUS_LABELS } from './labels'
+import { StatusBadge, WORK_ORDER_CATEGORY } from '../../design-system/StatusBadge'
 
 const NEEDS_REASON: WorkOrderStatus[] = ['CANCELLED', 'REJECTED']
 const DANGER: WorkOrderStatus[] = ['CANCELLED', 'REJECTED']
@@ -62,7 +63,7 @@ export function WorkOrderDetailPage() {
               Imprimir presupuesto
             </Link>
           )}
-          <span className={`badge wo-${order.status}`}>{WO_STATUS_LABELS[order.status]}</span>
+          <StatusBadge category={WORK_ORDER_CATEGORY[order.status]} label={WO_STATUS_LABELS[order.status]} />
         </div>
       </div>
       {order.sale && (

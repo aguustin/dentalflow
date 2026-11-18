@@ -5,6 +5,7 @@ import { api } from '../../lib/api'
 import { useTerms } from '../../org/OrganizationContext'
 import { AssetForm } from './AssetForm'
 import { WO_STATUS_LABELS } from './labels'
+import { StatusBadge, WORK_ORDER_CATEGORY } from '../../design-system/StatusBadge'
 
 /** A customer's equipment: its fields and the history of work orders. */
 export function AssetPage() {
@@ -45,7 +46,9 @@ export function AssetPage() {
                   </td>
                   <td>{new Date(w.createdAt).toLocaleDateString('es-AR')}</td>
                   <td>{w.reportedIssue}</td>
-                  <td>{WO_STATUS_LABELS[w.status]}</td>
+                  <td>
+                    <StatusBadge category={WORK_ORDER_CATEGORY[w.status]} label={WO_STATUS_LABELS[w.status]} />
+                  </td>
                 </tr>
               ))}
             </tbody>
