@@ -12,7 +12,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiExcludeEndpoint, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { Public } from '../../../shared/decorators/public.decorator';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { RequirePermissions } from '../../../shared/decorators/require-permissions.decorator';
@@ -27,6 +27,14 @@ class CheckoutRequest {
   planName: string;
 }
 
+class CardSubscriptionRequest extends CheckoutRequest {
+  @ApiProperty({ description: "Single-use card token from Mercado Pago's card form" })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  cardTokenId: string;
+}
+
 @ApiTags('Billing')
 @ApiBearerAuth()
 @Controller('billing')
@@ -37,7 +45,15 @@ export class SubscriptionPaymentsController {
   @RequirePermissions('billing.read')
   @ApiOperation({ summary: 'Current plan, available plans and recent charges' })
   overview(@CurrentUser() actor: RequestUser) {
-    return this.payments.overview(actor.organizationId);
+    return this.payments.overview(actor.organizationId, actor.userId);
+  }
+
+  @Post('subscribe-card')
+  @RequirePermissions('billing.update')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Subscribe to a paid plan with a card entered in the app (Mercado Pago card token)' })
+  subscribeWithCard(@Body() body: CardSubscriptionRequest, @CurrentUser() actor: RequestUser) {
+    return this.payments.subscribeWithCard(actor.organizationId, actor.userId, body.planName, body.cardTokenId);
   }
 
   @Post('checkout')

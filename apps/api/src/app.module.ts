@@ -26,6 +26,7 @@ import { ClinicalModule } from './modules/clinical/clinical.module';
 import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { OnlinePaymentsModule } from './modules/online-payments/online-payments.module';
 import { OrganizationOnboardingModule } from './modules/organizations/organizations.module';
 
 import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
@@ -73,6 +74,7 @@ import { TenantResolutionMiddleware } from './shared/middleware/tenant-resolutio
     WorkOrdersModule,
     ReportsModule,
     BillingModule,
+    OnlinePaymentsModule,
   ],
   providers: [
     // Exception filters run in reverse registration order — DomainExceptionFilter

@@ -12,3 +12,7 @@ process.env.NODE_ENV = 'test';
 // Clinical attachments go to a throwaway folder during tests
 process.env.UPLOADS_DIR = require('path').join(require('os').tmpdir(), 'dentalflow-test-uploads');
 process.env.MERCADOPAGO_WEBHOOK_SECRET = 'e2e-webhook-secret';
+process.env.PAYMENT_TOKENS_KEY = Buffer.alloc(32, 7).toString('base64');
+process.env.MERCADOPAGO_CLIENT_ID = 'e2e-client-id';
+process.env.MERCADOPAGO_CLIENT_SECRET = 'e2e-client-secret';
+process.env.APP_PUBLIC_WEB_URL = 'http://web.test';

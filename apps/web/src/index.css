@@ -88,72 +88,212 @@ code,
 }
 
 /* ── Form controls ────────────────────────────────────────────────────────── */
+/* Option A "delineado refinado": outlined, sunken field (inset shadow; darker than the card in dark). */
 label {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.93rem;
-  font-weight: 500;
+  font-size: 0.93rem; /* 13px */
+  font-weight: 600;
   color: var(--text);
 }
 input,
 select,
 textarea {
   font: inherit;
+  font-size: 1rem;
   font-weight: 400;
+  line-height: 1.4;
   min-height: var(--control-h);
-  padding: 7px 10px;
-  border-radius: var(--radius-sm);
+  padding: 8px var(--field-px);
+  border-radius: var(--radius-field);
   border: 1px solid var(--input-border);
-  background: var(--surface);
+  background-color: var(--field-bg);
+  box-shadow: var(--field-shadow);
   color: var(--text);
   transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
 }
 textarea {
-  min-height: 80px;
+  min-height: 88px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   resize: vertical;
 }
 input::placeholder,
 textarea::placeholder {
   color: var(--text-subtle);
+  opacity: 1; /* Firefox dims placeholders by default */
 }
-input:hover:not(:disabled),
-select:hover:not(:disabled),
-textarea:hover:not(:disabled) {
+input:hover:not(:disabled):not(:focus-visible),
+select:hover:not(:disabled):not(:focus-visible),
+textarea:hover:not(:disabled):not(:focus-visible) {
   border-color: var(--text-muted);
 }
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+input:focus,
+select:focus,
+textarea:focus {
   outline: none;
   border-color: var(--focus-ring);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 25%, transparent);
+  box-shadow: var(--field-shadow), 0 0 0 3px color-mix(in srgb, var(--focus-ring) 22%, transparent);
 }
+
+/* Select: own chevron, 12px from the right edge, text never overlaps it */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: calc(var(--field-px) + 16px + 10px);
+  background-image: var(--icon-chevron);
+  background-repeat: no-repeat;
+  background-position: right var(--field-px) center;
+  background-size: 16px;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+select:hover:not(:disabled) {
+  background-image: var(--icon-chevron-hover);
+}
+select:focus,
+select:focus-visible {
+  background-image: var(--icon-chevron-focus);
+}
+select[multiple] {
+  background-image: none;
+  padding-right: var(--field-px);
+}
+
+/* Search: magnifier inside the field, on the left */
+input[type='search'],
+input.search {
+  padding-left: calc(var(--field-px) + 16px + 8px);
+  background-image: var(--icon-search);
+  background-repeat: no-repeat;
+  background-position: left var(--field-px) center;
+  background-size: 16px;
+}
+
+/* Date / time: native picker icon aligned like the select chevron */
+input[type='date'],
+input[type='time'],
+input[type='datetime-local'],
+input[type='month'] {
+  font-variant-numeric: tabular-nums;
+}
+input::-webkit-calendar-picker-indicator {
+  margin-left: 8px;
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+input::-webkit-calendar-picker-indicator:hover {
+  background-color: var(--surface-2);
+}
+
+/* Disabled / read-only: no transparency, legible neutral colors */
 input:disabled,
 select:disabled,
 textarea:disabled,
 fieldset:disabled input,
 fieldset:disabled select,
 fieldset:disabled textarea {
-  background: var(--surface-2);
+  background-color: var(--surface-2);
   color: var(--text-muted);
   border-color: var(--border-strong);
+  box-shadow: none;
   cursor: not-allowed;
 }
+input:read-only:not([type='checkbox']):not([type='radio']):not(:disabled) {
+  background-color: var(--surface-2);
+  box-shadow: none;
+}
+
+/* Error: red border + red halo on focus */
 input.invalid,
-input[aria-invalid='true'] {
+select.invalid,
+textarea.invalid,
+input[aria-invalid='true'],
+select[aria-invalid='true'],
+textarea[aria-invalid='true'] {
   border-color: var(--st-problem-fg);
 }
+input.invalid:focus,
+select.invalid:focus,
+textarea.invalid:focus,
+input[aria-invalid='true']:focus,
+select[aria-invalid='true']:focus,
+textarea[aria-invalid='true']:focus {
+  border-color: var(--st-problem-fg);
+  box-shadow: var(--field-shadow), 0 0 0 3px color-mix(in srgb, var(--st-problem-fg) 22%, transparent);
+}
+
+/* Help text and field error message under a control */
+.hint {
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--st-problem-fg);
+}
+.field-error::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Checkbox / radio: 18px, brand green (browser picks a contrasting check mark) */
 input[type='checkbox'],
 input[type='radio'] {
   min-height: 0;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--green-700);
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+input[type='checkbox']:focus,
+input[type='radio']:focus {
+  box-shadow: none;
+}
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 input[type='color'] {
-  padding: 2px;
+  padding: 3px;
   width: 64px;
+  cursor: pointer;
+}
+input[type='file'] {
+  padding: 6px;
+  min-height: 0;
+  box-shadow: none;
+}
+input[type='file']::file-selector-button {
+  font: inherit;
+  font-weight: 600;
+  margin-right: 10px;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
 }
 label.checkbox,
 label.inline {
@@ -535,6 +675,15 @@ button.link:disabled {
   flex-direction: column;
   gap: 14px;
 }
+/* Main entity forms (nuevo ítem / paciente / profesional): form on a surface panel */
+.form-panel {
+  max-width: 540px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
 .form h1 {
   margin: 0 0 4px;
   font-size: 1.6rem;
@@ -740,6 +889,54 @@ button.link:disabled {
   overflow-y: auto;
   background: var(--surface-3);
   box-shadow: var(--shadow-lg);
+}
+
+.card-dialog {
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card-dialog h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+button.icon-button {
+  color: var(--text-muted);
+  padding: 4px;
+}
+button.icon-button:hover:not(:disabled) {
+  color: var(--text);
+  text-decoration: none;
+}
+.plan-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.plan-summary strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.secure-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: var(--text-muted);
+  margin: 0;
+}
+.secure-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent-text);
 }
 
 /* ── Pickers ──────────────────────────────────────────────────────────────── */

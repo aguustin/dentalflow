@@ -88,7 +88,7 @@ export function CatalogFormPage() {
       <Link to={parentId ? `/catalog/${parentId}` : '/catalog'}>← Volver</Link>
       <h1>{isNew ? 'Nuevo ítem' : name}</h1>
       {existing.data?.parentId && <p className="muted">Variante: {variantLabel(existing.data.name)}</p>}
-      <form className="form narrow" onSubmit={onSubmit}>
+      <form className="form narrow form-panel" onSubmit={onSubmit}>
         <label>
           Tipo
           <select value={type} onChange={(e) => setType(e.target.value as CatalogItemType)} disabled={!isNew}>

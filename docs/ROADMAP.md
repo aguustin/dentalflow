@@ -301,6 +301,25 @@ Casi todo es plantilla sobre Catálogo + Ventas + Inventario.
 
 ---
 
+### Fase 10 — Pagos con tarjeta (Visa, Mastercard…) con Mercado Pago 🚧 *(A y B completadas 2026-11-18)*
+
+> Visa/Mastercard son redes, no pasarelas: se cobran a través de Mercado Pago (procesador más usado en AR).
+
+- **A ✅ Suscripción con tarjeta dentro de la app**: Card Payment Brick → token de un solo uso →
+  `POST /billing/subscribe-card` crea la suscripción ya autorizada (`card_token_id`); el plan se aplica desde el
+  estado de Mercado Pago; idempotencia por token; rechazo → 422 `CARD_REJECTED`. Se mantiene el flujo por redirección.
+- **B ✅ Conectar la cuenta de Mercado Pago de la clínica (OAuth)**: módulo `online-payments`; `PaymentAccount` con
+  tokens cifrados AES-256-GCM ligados a la organización (`PAYMENT_TOKENS_KEY`); `state` firmado y de 10 min; callback
+  público `GET /api/v1/oauth/mercadopago/callback`; renovación antes de vencer (180 días) con actualización
+  condicional; si Mercado Pago rechaza la renovación → “volver a conectar”. Pantalla Configuración → Cobros online.
+- **C Cobrar una venta con link/QR** (pendiente): preferencia con el token de la clínica, webhook por organización
+  que verifica monto y venta, pago idempotente con el id de operación, fuera de la caja de efectivo.
+- Más adelante: terminal física (Mercado Pago Point), devoluciones automáticas.
+
+🧪 Unit: cifrado y `state` firmado. E2E: `state` falsificado, tokens cifrados, aislamiento, renovación.
+
+---
+
 ### Más adelante (sólo con demanda real)
 - **Mobile:** agenda del profesional y POS para retail. Reutiliza `packages/types` y el cliente HTTP.
 - **Multi-sucursal:** `Location` en org, stock por sucursal.

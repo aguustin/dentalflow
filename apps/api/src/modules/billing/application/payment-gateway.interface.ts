@@ -26,7 +26,12 @@ export interface GatewayCharge {
  * card data never touches our servers.
  */
 export interface PaymentGateway {
-  /** Creates a pending subscription; the customer authorizes it at `initPoint`. */
+  /**
+   * Without `cardTokenId`: creates a pending subscription the customer authorizes at `initPoint`.
+   * With `cardTokenId` (single-use token from Mercado Pago's card form; the card number never
+   * reaches us): creates it already authorized — Mercado Pago charges the first installment
+   * and rejects the request if the card is declined.
+   */
   createSubscription(input: {
     reason: string;
     externalReference: string;
@@ -36,7 +41,8 @@ export interface PaymentGateway {
     currency: string;
     backUrl: string;
     idempotencyKey: string;
-  }): Promise<{ id: string; initPoint: string }>;
+    cardTokenId?: string;
+  }): Promise<{ id: string; initPoint: string; status?: GatewaySubscriptionStatus }>;
   getSubscription(id: string): Promise<GatewaySubscription>;
   cancelSubscription(id: string): Promise<void>;
   /** A monthly charge of a subscription (authorized payment). */

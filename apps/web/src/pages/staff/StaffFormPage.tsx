@@ -71,7 +71,7 @@ export function StaffFormPage() {
       <Link to="/staff">← Volver</Link>
       <h1>{isNew ? `Nuevo ${terms.singular.toLowerCase()}` : form.name}</h1>
 
-      <form className="form narrow" onSubmit={onSubmit}>
+      <form className="form narrow form-panel" onSubmit={onSubmit}>
         <label>
           Nombre *
           <input value={form.name} onChange={set('name')} required maxLength={200} autoFocus />

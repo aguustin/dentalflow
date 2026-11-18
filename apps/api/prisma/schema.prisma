@@ -55,6 +55,7 @@ model Organization {
   stockMovements StockMovement[]
   cashSessions CashSession[]
   subscription Subscription?
+  paymentAccounts PaymentAccount[]
 
   @@map("organizations")
 }
@@ -879,4 +880,34 @@ model UsageRecord {
   @@unique([organizationId, metric, period])
   @@index([organizationId])
   @@map("usage_records")
+}
+
+/// The organization's OWN payment provider account (Mercado Pago via OAuth), used to collect
+/// from its customers. Money goes to the organization, never through Velatrix.
+/// Tokens are encrypted at rest (AES-256-GCM, bound to the organization id).
+model PaymentAccount {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  /// mercadopago
+  provider        String
+  /// Account id at the provider (Mercado Pago user_id)
+  externalUserId  String   @map("external_user_id")
+  /// Nickname / email shown in the UI
+  accountLabel    String?  @map("account_label")
+  accessTokenEnc  String   @map("access_token_enc")
+  refreshTokenEnc String   @map("refresh_token_enc")
+  /// Public by design (browser SDK)
+  publicKey       String?  @map("public_key")
+  liveMode        Boolean  @default(false) @map("live_mode")
+  expiresAt       DateTime @map("expires_at")
+  /// ACTIVE | REAUTH_REQUIRED (refresh failed: the organization must connect again)
+  status          String   @default("ACTIVE")
+  connectedBy     String   @map("connected_by")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@map("payment_accounts")
 }

@@ -75,7 +75,7 @@ export class BillingController {
   @HttpCode(HttpStatus.OK)
   async cancel(@CurrentUser() user: RequestUser) {
     // Back to the free plan; cancels the Mercado Pago subscription so it stops charging
-    return this.payments.cancel(user.organizationId);
+    return this.payments.cancel(user.organizationId, user.userId);
   }
 
   @Get('usage')

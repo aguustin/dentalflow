@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BillingOverview } from '@dentalflow/types'
+import { BillingOverview, CardSubscriptionResult } from '@dentalflow/types'
 import { api, ApiError } from '../../lib/api'
 import { formatMoney } from '../../lib/money'
+import { CardSubscriptionDialog } from './CardSubscriptionDialog'
 
 const STATUS: Record<string, string> = {
   ACTIVE: 'Activa',
@@ -26,6 +27,9 @@ export function BillingPage() {
   const [params, setParams] = useSearchParams()
   // Back from Mercado Pago: the plan changes when the webhook arrives (a few seconds)
   const [waiting, setWaiting] = useState(() => params.has('checkout'))
+  // Plan being paid with the in-app card form
+  const [cardPlan, setCardPlan] = useState<string | null>(null)
+  const [activated, setActivated] = useState(false)
 
   const { data, error, isPending } = useQuery({
     queryKey: ['billing'],
@@ -57,6 +61,13 @@ export function BillingPage() {
     onSuccess: (o) => queryClient.setQueryData(['billing'], o),
   })
 
+  const onCardDone = (r: CardSubscriptionResult) => {
+    queryClient.setQueryData(['billing'], r.overview)
+    setCardPlan(null)
+    if (r.status === 'authorized') setActivated(true)
+    else setWaiting(true) // Mercado Pago still confirming: the webhook applies the plan
+  }
+
   if (error instanceof ApiError && error.status === 403) {
     return (
       <section>
@@ -75,6 +86,7 @@ export function BillingPage() {
     <section>
       <h1>Plan y facturación</h1>
 
+      {activated && <p className="alert-ok">¡Listo! Tu suscripción quedó activa.</p>}
       {waiting && (
         <p className="alert-ok">Procesando la suscripción con Mercado Pago… esto puede tardar unos segundos.</p>
       )}
@@ -128,7 +140,11 @@ export function BillingPage() {
               {current ? (
                 <span className="badge">Plan actual</span>
               ) : p.price > 0 ? (
-                <button disabled={checkout.isPending || !data.configured} onClick={() => checkout.mutate(p.name)}>
+                <button
+                  disabled={checkout.isPending || !data.configured}
+                  // In-app card form when the public key is configured; otherwise Mercado Pago's site
+                  onClick={() => (data.publicKey ? setCardPlan(p.name) : checkout.mutate(p.name))}
+                >
                   {checkout.isPending && checkout.variables === p.name ? 'Abriendo Mercado Pago…' : 'Suscribirme'}
                 </button>
               ) : null}
@@ -162,6 +178,22 @@ export function BillingPage() {
           </table>
         )}
       </div>
+      {cardPlan && data.publicKey && (() => {
+        const plan = data.plans.find((x) => x.name === cardPlan)
+        return plan ? (
+          <CardSubscriptionDialog
+            plan={plan}
+            publicKey={data.publicKey}
+            payerEmail={data.payerEmail}
+            onDone={onCardDone}
+            onClose={() => setCardPlan(null)}
+            onRedirectInstead={() => {
+              setCardPlan(null)
+              checkout.mutate(plan.name)
+            }}
+          />
+        ) : null
+      })()}
     </section>
   )
 }

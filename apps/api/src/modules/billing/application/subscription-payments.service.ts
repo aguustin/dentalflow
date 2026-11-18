@@ -27,8 +27,8 @@ export class SubscriptionPaymentsService {
     @Inject(PAYMENT_GATEWAY) private readonly gateway: PaymentGateway,
   ) {}
 
-  /** Current plan, plans to choose from, recent charges. */
-  async overview(organizationId: string) {
+  /** Current plan, plans to choose from, recent charges. `userId` adds the data for the card form. */
+  async overview(organizationId: string, userId?: string) {
     const [subscription, plans, payments] = await Promise.all([
       this.prisma.subscription.findUnique({
         where: { organizationId },
@@ -61,11 +61,70 @@ export class SubscriptionPaymentsService {
       })),
       payments,
       configured: !!process.env.MERCADOPAGO_ACCESS_TOKEN,
+      // Public by design (used by Mercado Pago's card form in the browser)
+      publicKey: process.env.MERCADOPAGO_PUBLIC_KEY ?? null,
+      payerEmail: userId ? await this.payerEmail(userId) : null,
     };
   }
 
   /** Starts a paid subscription: returns the Mercado Pago URL where the customer authorizes it. */
   async startCheckout(organizationId: string, userId: string, planName: string) {
+    const { plan, amount } = await this.paidPlanFor(organizationId, planName);
+    const checkoutId = randomUUID();
+    const remote = await this.gateway.createSubscription({
+      ...(await this.subscriptionInput(organizationId, userId, plan, amount, checkoutId)),
+      idempotencyKey: checkoutId,
+    });
+    await this.prisma.billingCheckout.create({
+      data: { id: checkoutId, organizationId, planId: plan.id, mpPreapprovalId: remote.id, createdBy: userId },
+    });
+    return { checkoutId, initPoint: remote.initPoint };
+  }
+
+  /**
+   * Subscribes with a card entered in the app (Mercado Pago card form → single-use token; the
+   * card number never reaches us). Mercado Pago charges the first installment right away and
+   * refuses the request if the card is declined. The plan is applied from Mercado Pago's state
+   * (never from the request), exactly as the webhook does.
+   */
+  async subscribeWithCard(organizationId: string, userId: string, planName: string, cardTokenId: string) {
+    const { plan, amount } = await this.paidPlanFor(organizationId, planName);
+    const checkoutId = randomUUID();
+    let remote: { id: string; status?: string };
+    try {
+      remote = await this.gateway.createSubscription({
+        ...(await this.subscriptionInput(organizationId, userId, plan, amount, checkoutId)),
+        cardTokenId,
+        // Same token = same request (double click / retry) → same subscription in Mercado Pago
+        idempotencyKey: `card-${cardTokenId}`.slice(0, 64),
+      });
+    } catch (err) {
+      if (err instanceof DomainError && err.context?.reason === 'GATEWAY_REJECTED') {
+        throw new DomainError('INVALID', 'The card was declined or could not be validated', {
+          reason: 'CARD_REJECTED',
+          providerMessage: err.context.providerMessage ?? null,
+        });
+      }
+      throw err;
+    }
+    await this.prisma.billingCheckout
+      .create({ data: { id: checkoutId, organizationId, planId: plan.id, mpPreapprovalId: remote.id, createdBy: userId } })
+      .catch((err: unknown) => {
+        // Retried request: Mercado Pago returned the subscription that is already recorded
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') return null;
+        throw err;
+      });
+    try {
+      await this.syncSubscription(remote.id);
+    } catch (err) {
+      // The card was already charged: the webhook will apply the plan; the web keeps polling
+      this.logger.error(`Could not sync preapproval ${remote.id} after card subscription: ${String(err)}`);
+      return { status: 'pending', overview: await this.overview(organizationId, userId) };
+    }
+    return { status: remote.status ?? 'pending', overview: await this.overview(organizationId, userId) };
+  }
+
+  private async paidPlanFor(organizationId: string, planName: string) {
     const plan = await this.prisma.plan.findFirst({ where: { name: planName, isActive: true } });
     if (!plan) throw new NotFoundException(`Plan '${planName}' not found`);
     const amount = Math.round(Number(plan.price) * 100);
@@ -75,33 +134,38 @@ export class SubscriptionPaymentsService {
     if (current?.planId === plan.id && current.mpPreapprovalId && current.status === 'ACTIVE') {
       throw new DomainError('CONFLICT', `The organization is already paying the '${plan.name}' plan`);
     }
+    return { plan, amount };
+  }
 
-    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
-    // In test mode Mercado Pago requires the payer to be the test buyer account
-    const payerEmail =
-      process.env.NODE_ENV !== 'production' && process.env.MERCADOPAGO_TEST_PAYER_EMAIL
-        ? process.env.MERCADOPAGO_TEST_PAYER_EMAIL
-        : user.email;
-
-    const checkoutId = randomUUID();
+  private async subscriptionInput(
+    organizationId: string,
+    userId: string,
+    plan: { displayName: string; currency: string },
+    amount: number,
+    checkoutId: string,
+  ) {
     const webUrl = process.env.APP_PUBLIC_WEB_URL ?? 'http://localhost:5173';
-    const remote = await this.gateway.createSubscription({
-      reason: `DentalFlow · plan ${plan.displayName}`,
+    return {
+      reason: `Velatrix One · plan ${plan.displayName}`,
       externalReference: `${organizationId}:${checkoutId}`,
-      payerEmail,
+      payerEmail: await this.payerEmail(userId),
       amount,
       currency: plan.currency,
       backUrl: `${webUrl}/billing?checkout=${checkoutId}`,
-      idempotencyKey: checkoutId,
-    });
-    await this.prisma.billingCheckout.create({
-      data: { id: checkoutId, organizationId, planId: plan.id, mpPreapprovalId: remote.id, createdBy: userId },
-    });
-    return { checkoutId, initPoint: remote.initPoint };
+    };
+  }
+
+  private async payerEmail(userId: string) {
+    // In test mode Mercado Pago requires the payer to be the test buyer account
+    if (process.env.NODE_ENV !== 'production' && process.env.MERCADOPAGO_TEST_PAYER_EMAIL) {
+      return process.env.MERCADOPAGO_TEST_PAYER_EMAIL;
+    }
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
+    return user.email;
   }
 
   /** Back to the free plan, cancelling the Mercado Pago subscription so it stops charging. */
-  async cancel(organizationId: string) {
+  async cancel(organizationId: string, userId?: string) {
     const current = await this.prisma.subscription.findUnique({
       where: { organizationId },
       include: { plan: { select: { name: true } } },
@@ -112,7 +176,7 @@ export class SubscriptionPaymentsService {
     }
     if (current.mpPreapprovalId) await this.gateway.cancelSubscription(current.mpPreapprovalId);
     await this.downgradeToFree(organizationId);
-    return this.overview(organizationId);
+    return this.overview(organizationId, userId);
   }
 
   /**

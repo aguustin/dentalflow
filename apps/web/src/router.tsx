@@ -20,6 +20,7 @@ import { CashPage } from './pages/sales/CashPage'
 import { PosPage } from './pages/sales/PosPage'
 import { ReportsPage } from './pages/reports/ReportsPage'
 import { BillingPage } from './pages/billing/BillingPage'
+import { OnlinePaymentsPage } from './pages/settings/OnlinePaymentsPage'
 import { InventoryPage } from './pages/inventory/InventoryPage'
 import { InventoryItemPage } from './pages/inventory/InventoryItemPage'
 import { ClinicalPage } from './pages/clinical/ClinicalPage'
@@ -28,6 +29,7 @@ import { WorkOrderNewPage } from './pages/work-orders/WorkOrderNewPage'
 import { WorkOrderDetailPage } from './pages/work-orders/WorkOrderDetailPage'
 import { AssetPage } from './pages/work-orders/AssetPage'
 import { WorkOrderPrintPage } from './pages/work-orders/WorkOrderPrintPage'
+import { FieldsPreview } from './design-system/FieldsPreview'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
@@ -41,6 +43,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <HomeRedirect /> },
+      ...(import.meta.env.DEV ? [{ path: 'dev/campos', element: <FieldsPreview /> }] : []),
       {
         path: 'customers',
         element: (
@@ -235,6 +238,7 @@ export const router = createBrowserRouter([
       },
       { path: 'reports', element: <ReportsPage /> },
       { path: 'billing', element: <BillingPage /> },
+      { path: 'settings/payments', element: <OnlinePaymentsPage /> },
       { path: 'users', element: <UsersPage /> },
       { path: '*', element: <NotFound /> },
     ],

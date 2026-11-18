@@ -1,4 +1,5 @@
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { DomainError } from '../../../shared/contracts/errors/domain.error';
 import {
   GatewayCharge,
   GatewaySubscription,
@@ -28,14 +29,17 @@ export class MercadoPagoGateway implements PaymentGateway {
     currency: string;
     backUrl: string;
     idempotencyKey: string;
-  }): Promise<{ id: string; initPoint: string }> {
-    const body = await this.request<{ id: string; init_point: string }>('POST', '/preapproval', {
+    cardTokenId?: string;
+  }): Promise<{ id: string; initPoint: string; status: GatewaySubscriptionStatus }> {
+    const body = await this.request<{ id: string; init_point: string; status: GatewaySubscriptionStatus }>('POST', '/preapproval', {
       body: {
         reason: input.reason,
         external_reference: input.externalReference,
         payer_email: input.payerEmail,
         back_url: input.backUrl,
-        status: 'pending',
+        ...(input.cardTokenId
+          ? { card_token_id: input.cardTokenId, status: 'authorized' }
+          : { status: 'pending' }),
         auto_recurring: {
           frequency: 1,
           frequency_type: 'months',
@@ -45,7 +49,7 @@ export class MercadoPagoGateway implements PaymentGateway {
       },
       idempotencyKey: input.idempotencyKey,
     });
-    return { id: body.id, initPoint: body.init_point };
+    return { id: body.id, initPoint: body.init_point, status: body.status };
   }
 
   async getSubscription(id: string): Promise<GatewaySubscription> {
@@ -114,6 +118,13 @@ export class MercadoPagoGateway implements PaymentGateway {
       // Never log the token; the body only has Mercado Pago's error description
       this.logger.error(`Mercado Pago ${res.status} on ${method} ${path}: ${JSON.stringify(data)}`);
       const message = (data as { message?: string }).message;
+      // 400/422: Mercado Pago refused this request (e.g. card declined, invalid token) — not an outage
+      if (res.status === 400 || res.status === 422) {
+        throw new DomainError('INVALID', `Mercado Pago rejected the request${message ? `: ${message}` : ''}`, {
+          reason: 'GATEWAY_REJECTED',
+          providerMessage: message ?? null,
+        });
+      }
       throw new ServiceUnavailableException(`Mercado Pago rejected the request${message ? `: ${message}` : ''}`);
     }
     return data as T;

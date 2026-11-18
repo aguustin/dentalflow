@@ -18,6 +18,7 @@ import {
   Sun,
   UserRound,
   Users,
+  Wallet,
   Wrench,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
@@ -113,6 +114,7 @@ function Shell() {
 
   const settings: NavItem[] = [
     { to: '/users', label: 'Usuarios', icon: ShieldCheck },
+    { to: '/settings/payments', label: 'Cobros online', icon: Wallet },
     { to: '/billing', label: 'Plan y facturación', icon: CreditCard },
   ]
 
