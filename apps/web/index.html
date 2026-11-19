@@ -7,9 +7,9 @@
     <meta name="color-scheme" content="light dark" />
     <title>Velatrix One · Clinic</title>
     <script>
-      // Apply the saved appearance before the first paint (no flash). Key shared with design-system/theme.ts.
+      // Apply Clinic's saved appearance before the first paint (no flash). Keys: design-system/theme.ts.
       try {
-        var t = localStorage.getItem('velatrix.theme')
+        var t = localStorage.getItem('velatrix.clinic.theme') || localStorage.getItem('velatrix.theme')
         if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t)
       } catch (e) {}
     </script>

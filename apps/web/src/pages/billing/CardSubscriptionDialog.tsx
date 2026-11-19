@@ -28,7 +28,7 @@ function brickStyle() {
       baseColor: v('--accent'),
       baseColorFirstVariant: v('--accent-hover'),
       baseColorSecondVariant: v('--accent-pressed'),
-      buttonTextColor: v('--on-accent'), // never white on green
+      buttonTextColor: v('--on-accent'), // never white on the accent
       textPrimaryColor: v('--text'),
       textSecondaryColor: v('--text-muted'),
       inputBackgroundColor: v('--field-bg'),

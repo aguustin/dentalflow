@@ -252,7 +252,7 @@ textarea[aria-invalid='true']:focus {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
-/* Checkbox / radio: 18px, brand green (browser picks a contrasting check mark) */
+/* Checkbox / radio: 18px, product accent indicator (browser picks a contrasting check mark) */
 input[type='checkbox'],
 input[type='radio'] {
   min-height: 0;
@@ -261,7 +261,7 @@ input[type='radio'] {
   margin: 0;
   padding: 0;
   box-shadow: none;
-  accent-color: var(--accent);
+  accent-color: var(--accent-indicator);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -322,7 +322,7 @@ fieldset.plain {
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────────
- * Default <button> = primary (green, ink text). Variants: .secondary, .danger, .link.
+ * Default <button> = primary (product accent, ink text). Variants: .secondary, .danger, .link.
  * Disabled: no global opacity — legible neutral colors instead.
  */
 button,
@@ -415,7 +415,7 @@ button.link:disabled {
   overflow-y: auto;
 }
 .sidebar :focus-visible {
-  outline-color: var(--green-500);
+  outline-color: var(--sidebar-focus);
 }
 .sidebar .brand {
   display: flex;
@@ -441,14 +441,9 @@ button.link:disabled {
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
-  color: var(--sidebar-text);
-}
-.sidebar .edition::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--edition); /* edition color: identity detail only */
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--edition-text); /* product identity: Clinic cyan */
 }
 .sidebar .org {
   margin: 0 8px 12px;
@@ -515,8 +510,8 @@ button.link:disabled {
   min-width: 20px;
   padding: 0 6px;
   border-radius: var(--radius-full);
-  background: var(--st-problem-fg);
-  color: #fff;
+  background: var(--sidebar-badge-bg);
+  color: var(--sidebar-badge-text);
   font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
@@ -558,7 +553,7 @@ button.link:disabled {
   padding: 3px;
   margin-bottom: 4px;
   border-radius: var(--radius-sm);
-  background: var(--graphite-900);
+  background: var(--sidebar-control-bg);
   border: 1px solid var(--sidebar-border);
 }
 .theme-switch button,
@@ -577,7 +572,7 @@ button.link:disabled {
 }
 .theme-switch button.active,
 .theme-switch button.active:hover {
-  background: var(--graphite-800);
+  background: var(--sidebar-control-active);
   color: var(--sidebar-text-strong);
 }
 .theme-switch button.active svg {
@@ -870,7 +865,7 @@ button.link:disabled {
 .tab.active:hover {
   color: var(--text);
   font-weight: 600;
-  border-bottom-color: var(--accent); /* echo of the brand accent bar */
+  border-bottom-color: var(--accent-indicator); /* product accent bar */
 }
 
 /* ── Dialogs ──────────────────────────────────────────────────────────────── */
@@ -992,8 +987,8 @@ button.icon-button:hover:not(:disabled) {
   gap: 6px;
 }
 .day.today {
-  border-color: var(--accent);
-  box-shadow: inset 0 2px 0 var(--accent);
+  border-color: var(--accent-indicator);
+  box-shadow: inset 0 2px 0 var(--accent-indicator);
 }
 .day-header {
   display: flex;
@@ -1017,7 +1012,7 @@ button.icon-button:hover:not(:disabled) {
   background: var(--surface-2);
   color: var(--text);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--accent-indicator);
 }
 .appt:hover:not(:disabled) {
   border-color: var(--border-strong);
@@ -1049,7 +1044,7 @@ button.icon-button:hover:not(:disabled) {
 .slot.selected,
 .slot.selected:hover {
   background: var(--accent-soft);
-  border-color: var(--accent);
+  border-color: var(--accent-indicator);
   color: var(--accent-text);
 }
 
@@ -1324,14 +1319,14 @@ input.qty {
   border-radius: var(--radius-sm);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--accent-indicator);
   color: var(--text);
   text-decoration: none;
   box-shadow: var(--shadow-sm);
 }
 .wo-card:hover {
   border-color: var(--border-strong);
-  border-left-color: var(--accent);
+  border-left-color: var(--accent-indicator);
 }
 .transitions {
   margin: 12px 0;
@@ -1369,7 +1364,7 @@ input.qty {
 }
 .bar {
   height: 14px;
-  background: var(--accent);
+  background: var(--chart-1);
   border-radius: 3px;
 }
 .report-tables {
@@ -1402,8 +1397,8 @@ input.qty {
   padding-left: 18px;
 }
 .plan-card.current {
-  border-color: var(--accent);
-  box-shadow: inset 0 2px 0 var(--accent), var(--shadow-md);
+  border-color: var(--accent-indicator);
+  box-shadow: inset 0 2px 0 var(--accent-indicator), var(--shadow-md);
 }
 
 /* ── Print (always light, no app chrome) ──────────────────────────────────── */

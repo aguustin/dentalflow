@@ -1,57 +1,44 @@
 /*
  * Velatrix One — design tokens. Source of truth: docs/product/design-system.md
- * Components use ONLY semantic tokens (never raw HEX).
+ * Components use ONLY semantic tokens (layer 5), never raw HEX.
  *
- * Theme selection: <html data-theme="light|dark"> forces a theme; without it
- * the OS preference applies ("Automático").
+ * Layers
+ *   1. Institutional Velatrix  (--vx-*)       brand assets only (logo, corporate material)
+ *   2. Global system           neutrals, type, shape, motion — shared by every product
+ *   3. Product                 (--product-*)   identity of the edition: Clinic (cyan)
+ *   4. Functional              (--fn-*)        success / warning / danger / info — universal
+ *   5. Theme (semantic)        --bg, --accent, --st-* …  light / dark / auto
+ *
+ * Theme: <html data-theme="light|dark"> forces a theme; without it the OS preference
+ * applies ("Automático"). Other editions (Retail, Workshop) will override layer 3 only.
  */
 
 :root {
-  /* ── Brand primitives ─────────────────────────────────────────────────── */
-  --green-50: #e6fdf1;
-  --green-100: #c2f9dc;
-  --green-200: #8df3bf;
-  --green-300: #4dec9c;
-  --green-400: #1fe884;
-  --green-500: #00e676; /* Velatrix */
-  --green-600: #00c764;
-  --green-700: #00a353;
-  --green-800: #00824a;
-  --green-900: #00663a;
-  --green-950: #003d23;
-  --teal-400: #00c9a7;
-  --brand-gradient: linear-gradient(135deg, #00e676 0%, #00c9a7 100%);
+  /* ── 1. Institutional Velatrix (do not use for Clinic actions) ─────────── */
+  --vx-green: #00e676;
+  --vx-teal: #00c9a7;
+  --vx-black: #0a0b0d;
+  --vx-graphite: #1a1b1e;
+  --vx-brand-gradient: linear-gradient(135deg, #00e676 0%, #00c9a7 100%);
 
+  /* ── 2. Global system ──────────────────────────────────────────────────── */
   --graphite-950: #0a0b0d;
   --graphite-900: #111317;
-  --graphite-850: #1a1b1e; /* brand graphite */
+  --graphite-850: #1a1b1e;
   --graphite-800: #22252a;
   --graphite-700: #2e3138;
-  --graphite-600: #4b5563; /* brand slate */
+  --graphite-600: #4b5563;
   --graphite-500: #6b7280;
   --graphite-400: #9ca3af;
   --graphite-300: #cbd2db;
   --graphite-200: #e2e6eb;
   --graphite-100: #f1f4f7;
-  --graphite-50: #f8fafc; /* brand white */
+  --graphite-50: #f8fafc;
 
-  /* Edition color — strictly secondary (never actions, active nav, focus, brand, states) */
-  --edition: #22d3ee; /* Clinic */
-
-  /* Chart categorical palette, ordered for distinction */
-  --chart-1: #00e676;
-  --chart-2: #38bdf8;
-  --chart-3: #f59e0b;
-  --chart-4: #a78bfa;
-  --chart-5: #f472b6;
-  --chart-6: #94a3b8;
-
-  /* ── Typography ───────────────────────────────────────────────────────── */
   --font-display: 'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
   --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
 
-  /* ── Shape & motion ───────────────────────────────────────────────────── */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -62,18 +49,51 @@
   --ease: cubic-bezier(0.2, 0, 0, 1);
   --duration: 140ms;
 
-  /* ── Sidebar: dark in every theme (brand anchor) ──────────────────────── */
+  /* ── 3. Product: Velatrix One · Clinic — clinical cyan ─────────────────── */
+  --product-accent: #22d3ee; /* identity; ink text on it 10.9:1 */
+  --product-accent-hover: #06b6d4; /* ink 8.1:1 */
+  --product-accent-strong: #0891b2; /* non-text indicators on white 3.7:1; ink 5.4:1 */
+  --product-accent-ink: #0e7490; /* cyan TEXT on light surfaces 5.4:1 (#0891B2 fails 4.5) */
+  --product-accent-soft: #cffafe; /* selected background, light */
+  --product-accent-subtle: #ecfeff; /* soft surface, light */
+  --product-accent-dark-soft: rgb(34 211 238 / 0.12); /* selected background, dark */
+  --product-accent-dark-hover: #67e8f9; /* ink 13.6:1 */
+
+  /* ── 4. Functional (universal; never the product color) ────────────────── */
+  --fn-success: #047857;
+  --fn-success-bg: #d1fae5;
+  --fn-success-dark: #34d399;
+  --fn-warning: #b45309;
+  --fn-warning-bg: #fef3c7;
+  --fn-warning-dark: #fbbf24;
+  --fn-danger: #dc2626;
+  --fn-danger-bg: #fee2e2;
+  --fn-danger-dark: #f87171;
+  --fn-info: #1d4ed8; /* blue, deliberately apart from the Clinic cyan */
+  --fn-info-bg: #dbeafe;
+  --fn-info-dark: #60a5fa;
+  --fn-progress: #6d28d9;
+  --fn-progress-bg: #ede9fe;
+  --fn-progress-dark: #c4b5fd;
+
+  /* ── Sidebar: dark in every theme (institutional anchor), product accent ── */
   --sidebar-bg: var(--graphite-950);
   --sidebar-border: var(--graphite-850);
   --sidebar-text: var(--graphite-400);
   --sidebar-text-strong: var(--graphite-50);
   --sidebar-hover: var(--graphite-850);
-  --sidebar-active: var(--green-500);
-  --sidebar-active-bg: rgb(0 230 118 / 0.1);
   --sidebar-label: var(--graphite-500);
+  --sidebar-active: var(--product-accent); /* 9.4:1 on its active background */
+  --sidebar-active-bg: rgb(34 211 238 / 0.1);
+  --sidebar-focus: var(--product-accent);
+  --sidebar-control-bg: var(--graphite-900);
+  --sidebar-control-active: var(--graphite-800);
+  --sidebar-badge-bg: var(--fn-danger); /* white text 4.8:1 */
+  --sidebar-badge-text: #ffffff;
+  --edition-text: var(--product-accent); /* edition name next to the brand */
 }
 
-/* ── Light theme (default values) ─────────────────────────────────────── */
+/* ── 5. Light theme (default values) ─────────────────────────────────── */
 :root,
 :root[data-theme='light'] {
   color-scheme: light;
@@ -86,47 +106,69 @@
   --input-border: #858c99; /* 3.4:1 on white: form controls must be identifiable */
   --field-bg: #ffffff;
   --field-shadow: inset 0 1px 2px rgb(10 11 13 / 0.06);
-  /* Field icons (Lucide paths as data URIs; colors: text-muted / text / focus-ring) */
-  --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  --icon-chevron-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230A0B0D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  --icon-chevron-focus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300A353' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
   --text: var(--graphite-950);
   --text-muted: var(--graphite-600); /* 7.6:1 on white */
   --text-subtle: var(--graphite-500); /* 4.8:1 on white */
-  --accent: var(--green-500);
-  --accent-hover: var(--green-600);
-  --accent-pressed: var(--green-700);
-  --on-accent: var(--graphite-950);
-  --accent-text: var(--green-800); /* 4.9:1 on white */
-  --accent-soft: var(--green-50);
-  --focus-ring: var(--green-700); /* 3.3:1 on white */
+
+  --accent: var(--product-accent); /* fills: primary buttons */
+  --accent-hover: var(--product-accent-hover);
+  --accent-pressed: var(--product-accent-strong);
+  --on-accent: var(--graphite-950); /* never white on cyan */
+  --accent-text: var(--product-accent-ink); /* links, cyan text */
+  --accent-soft: var(--product-accent-soft);
+  --accent-subtle: var(--product-accent-subtle);
+  --accent-indicator: var(--product-accent-strong); /* bars, selected borders, checks: 3:1 */
+  --focus-ring: var(--product-accent-strong); /* 3.7:1 on white */
+
   --overlay: rgb(10 11 13 / 0.45);
   --shadow-sm: 0 1px 2px rgb(10 11 13 / 0.06);
   --shadow-md: 0 1px 2px rgb(10 11 13 / 0.06), 0 4px 12px rgb(10 11 13 / 0.06);
   --shadow-lg: 0 8px 28px rgb(10 11 13 / 0.14);
   --skeleton: var(--graphite-100);
 
-  /* Status categories (text / background / border) */
-  --st-pending-fg: #b45309;
-  --st-pending-bg: #fef3c7;
-  --st-confirmed-fg: #0369a1;
-  --st-confirmed-bg: #e0f2fe;
-  --st-progress-fg: #6d28d9;
-  --st-progress-bg: #ede9fe;
-  --st-done-fg: var(--green-800);
-  --st-done-bg: var(--green-50);
+  /* Status categories (design-system.md §7) */
+  --st-pending-fg: var(--fn-warning);
+  --st-pending-bg: var(--fn-warning-bg);
+  --st-confirmed-fg: var(--fn-info);
+  --st-confirmed-bg: var(--fn-info-bg);
+  --st-progress-fg: var(--fn-progress);
+  --st-progress-bg: var(--fn-progress-bg);
+  --st-done-fg: var(--fn-success);
+  --st-done-bg: var(--fn-success-bg);
   --st-cancelled-fg: var(--graphite-600);
   --st-cancelled-bg: var(--graphite-100);
-  --st-problem-fg: #dc2626;
-  --st-problem-bg: #fee2e2;
-
-  --danger: #dc2626;
+  --st-problem-fg: var(--fn-danger);
+  --st-problem-bg: var(--fn-danger-bg);
+  --danger: var(--fn-danger);
   --danger-hover: #b91c1c;
   --on-danger: #ffffff;
+
+  /* Charts: categorical, ordered for distinction; ≥3:1 on white */
+  --chart-1: var(--product-accent-strong);
+  --chart-2: #b45309;
+  --chart-3: #7c3aed;
+  --chart-4: #db2777;
+  --chart-5: #15803d;
+  --chart-6: #64748b;
+
+  /* Clinical specialty (odontogram): conventional chart colors */
+  --odonto-caries: #dc2626;
+  --odonto-filling: #2563eb;
+  --odonto-sealant: #16a34a;
+  --odonto-fracture: #ea580c;
+  --odonto-crown: #9333ea;
+  --odonto-root-canal: #92400e;
+  --odonto-implant: #6b7280;
+  --odonto-missing: #111827;
+
+  /* Field icons (Lucide paths as data URIs; colors: text-muted / text / focus-ring) */
+  --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --icon-chevron-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230A0B0D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --icon-chevron-focus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230891B2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
 }
 
-/* ── Dark theme: the original Velatrix identity ───────────────────────── */
+/* ── 5. Dark theme ────────────────────────────────────────────────────── */
 :root[data-theme='dark'] {
   color-scheme: dark;
   --bg: var(--graphite-950);
@@ -138,45 +180,65 @@
   --input-border: #626b79; /* 3:1 on #111317 */
   --field-bg: var(--graphite-950); /* sunken below the #111317 surface */
   --field-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4);
-  --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  --icon-chevron-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23F8FAFC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  --icon-chevron-focus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300E676' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
   --text: var(--graphite-50);
   --text-muted: var(--graphite-400); /* 7.7:1 on #0A0B0D */
   --text-subtle: #8b93a1;
-  --accent: var(--green-500);
-  --accent-hover: var(--green-400);
-  --accent-pressed: var(--green-600);
+
+  --accent: var(--product-accent);
+  --accent-hover: var(--product-accent-dark-hover);
+  --accent-pressed: var(--product-accent-hover);
   --on-accent: var(--graphite-950);
-  --accent-text: var(--green-500);
-  --accent-soft: rgb(0 230 118 / 0.1);
-  --focus-ring: var(--green-500);
+  --accent-text: var(--product-accent); /* 10.3:1 on #111317 */
+  --accent-soft: var(--product-accent-dark-soft);
+  --accent-subtle: rgb(34 211 238 / 0.06);
+  --accent-indicator: var(--product-accent);
+  --focus-ring: var(--product-accent);
+
   --overlay: rgb(0 0 0 / 0.6);
   --shadow-sm: none;
   --shadow-md: none;
   --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5);
   --skeleton: var(--graphite-850);
 
-  --st-pending-fg: #fbbf24;
+  --st-pending-fg: var(--fn-warning-dark);
   --st-pending-bg: rgb(251 191 36 / 0.12);
-  --st-confirmed-fg: #38bdf8;
-  --st-confirmed-bg: rgb(56 189 248 / 0.12);
-  --st-progress-fg: #c4b5fd;
+  --st-confirmed-fg: var(--fn-info-dark);
+  --st-confirmed-bg: rgb(96 165 250 / 0.14);
+  --st-progress-fg: var(--fn-progress-dark);
   --st-progress-bg: rgb(167 139 250 / 0.14);
-  --st-done-fg: var(--green-400);
-  --st-done-bg: rgb(0 230 118 / 0.12);
+  --st-done-fg: var(--fn-success-dark);
+  --st-done-bg: rgb(52 211 153 / 0.12);
   --st-cancelled-fg: var(--graphite-400);
   --st-cancelled-bg: rgb(156 163 175 / 0.12);
-  --st-problem-fg: #f87171;
+  --st-problem-fg: var(--fn-danger-dark);
   --st-problem-bg: rgb(248 113 113 / 0.12);
-
   --danger: #ef4444;
   --danger-hover: #f87171;
   --on-danger: #ffffff;
+
+  --chart-1: var(--product-accent);
+  --chart-2: #f59e0b;
+  --chart-3: #a78bfa;
+  --chart-4: #f472b6;
+  --chart-5: #4ade80;
+  --chart-6: #94a3b8;
+
+  --odonto-caries: #f87171;
+  --odonto-filling: #60a5fa;
+  --odonto-sealant: #4ade80;
+  --odonto-fracture: #fb923c;
+  --odonto-crown: #c084fc;
+  --odonto-root-canal: #d6a26b;
+  --odonto-implant: #9ca3af;
+  --odonto-missing: #e5e7eb;
+
+  --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --icon-chevron-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23F8FAFC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --icon-chevron-focus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2322D3EE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
 }
 
-/* "Automático": follow the OS when no theme is forced */
+/* "Automático": follow the OS when no theme is forced (same values as the dark theme) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
@@ -189,39 +251,61 @@
     --input-border: #626b79;
     --field-bg: var(--graphite-950);
     --field-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4);
-    --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    --icon-chevron-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23F8FAFC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    --icon-chevron-focus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300E676' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
     --text: var(--graphite-50);
     --text-muted: var(--graphite-400);
     --text-subtle: #8b93a1;
-    --accent: var(--green-500);
-    --accent-hover: var(--green-400);
-    --accent-pressed: var(--green-600);
+
+    --accent: var(--product-accent);
+    --accent-hover: var(--product-accent-dark-hover);
+    --accent-pressed: var(--product-accent-hover);
     --on-accent: var(--graphite-950);
-    --accent-text: var(--green-500);
-    --accent-soft: rgb(0 230 118 / 0.1);
-    --focus-ring: var(--green-500);
+    --accent-text: var(--product-accent);
+    --accent-soft: var(--product-accent-dark-soft);
+    --accent-subtle: rgb(34 211 238 / 0.06);
+    --accent-indicator: var(--product-accent);
+    --focus-ring: var(--product-accent);
+
     --overlay: rgb(0 0 0 / 0.6);
     --shadow-sm: none;
     --shadow-md: none;
     --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5);
     --skeleton: var(--graphite-850);
-    --st-pending-fg: #fbbf24;
+
+    --st-pending-fg: var(--fn-warning-dark);
     --st-pending-bg: rgb(251 191 36 / 0.12);
-    --st-confirmed-fg: #38bdf8;
-    --st-confirmed-bg: rgb(56 189 248 / 0.12);
-    --st-progress-fg: #c4b5fd;
+    --st-confirmed-fg: var(--fn-info-dark);
+    --st-confirmed-bg: rgb(96 165 250 / 0.14);
+    --st-progress-fg: var(--fn-progress-dark);
     --st-progress-bg: rgb(167 139 250 / 0.14);
-    --st-done-fg: var(--green-400);
-    --st-done-bg: rgb(0 230 118 / 0.12);
+    --st-done-fg: var(--fn-success-dark);
+    --st-done-bg: rgb(52 211 153 / 0.12);
     --st-cancelled-fg: var(--graphite-400);
     --st-cancelled-bg: rgb(156 163 175 / 0.12);
-    --st-problem-fg: #f87171;
+    --st-problem-fg: var(--fn-danger-dark);
     --st-problem-bg: rgb(248 113 113 / 0.12);
     --danger: #ef4444;
     --danger-hover: #f87171;
     --on-danger: #ffffff;
+
+    --chart-1: var(--product-accent);
+    --chart-2: #f59e0b;
+    --chart-3: #a78bfa;
+    --chart-4: #f472b6;
+    --chart-5: #4ade80;
+    --chart-6: #94a3b8;
+
+    --odonto-caries: #f87171;
+    --odonto-filling: #60a5fa;
+    --odonto-sealant: #4ade80;
+    --odonto-fracture: #fb923c;
+    --odonto-crown: #c084fc;
+    --odonto-root-canal: #d6a26b;
+    --odonto-implant: #9ca3af;
+    --odonto-missing: #e5e7eb;
+
+    --icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --icon-chevron-hover: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23F8FAFC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --icon-chevron-focus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2322D3EE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
   }
 }

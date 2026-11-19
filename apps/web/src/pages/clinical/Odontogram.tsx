@@ -17,15 +17,16 @@ export const CONDITION_LABELS: Record<ToothConditionType, string> = {
 }
 
 const COLORS: Partial<Record<ToothConditionType, string>> = {
-  CARIES: '#dc2626',
-  FILLING: '#2563eb',
-  SEALANT: '#16a34a',
-  FRACTURE: '#ea580c',
-  CROWN: '#9333ea',
-  ROOT_CANAL: '#92400e',
-  IMPLANT: '#6b7280',
-  MISSING: '#111827',
-  EXTRACTION_NEEDED: '#dc2626',
+  // Theme tokens (design-system/tokens.css): legible on light and dark surfaces
+  CARIES: 'var(--odonto-caries)',
+  FILLING: 'var(--odonto-filling)',
+  SEALANT: 'var(--odonto-sealant)',
+  FRACTURE: 'var(--odonto-fracture)',
+  CROWN: 'var(--odonto-crown)',
+  ROOT_CANAL: 'var(--odonto-root-canal)',
+  IMPLANT: 'var(--odonto-implant)',
+  MISSING: 'var(--odonto-missing)',
+  EXTRACTION_NEEDED: 'var(--odonto-caries)',
 }
 
 const SURFACE_LABELS: Record<ToothSurface, string> = {
@@ -167,7 +168,7 @@ function Tooth({
     const s = surfaceState(surfaceAt(tooth, region))
     return s ? (COLORS[s.condition] ?? 'transparent') : 'transparent'
   }
-  const stroke = (region: Region) => (selected === surfaceAt(tooth, region) ? 'var(--accent)' : 'var(--border-strong)')
+  const stroke = (region: Region) => (selected === surfaceAt(tooth, region) ? 'var(--accent-indicator)' : 'var(--border-strong)')
   const wholeColor = whole ? COLORS[whole.condition] : undefined
   const crossed = whole?.condition === 'MISSING' || whole?.condition === 'EXTRACTION_NEEDED'
 
@@ -191,8 +192,7 @@ function Tooth({
           <polygon
             key={region}
             points={POLYGONS[region]}
-            fill={fill(region)}
-            stroke={stroke(region)}
+            style={{ fill: fill(region), stroke: stroke(region) }}
             strokeWidth={1.5}
             onClick={() => onSelect(surfaceAt(tooth, region))}
           >
@@ -204,18 +204,17 @@ function Tooth({
           y={12}
           width={16}
           height={16}
-          fill={fill('center')}
-          stroke={stroke('center')}
+          style={{ fill: fill('center'), stroke: stroke('center') }}
           strokeWidth={1.5}
           onClick={() => onSelect('O')}
         >
           <title>{SURFACE_LABELS.O}</title>
         </rect>
         {wholeColor && !crossed && (
-          <rect x={0} y={0} width={40} height={40} fill="none" stroke={wholeColor} strokeWidth={4} pointerEvents="none" />
+          <rect x={0} y={0} width={40} height={40} fill="none" style={{ stroke: wholeColor }} strokeWidth={4} pointerEvents="none" />
         )}
         {crossed && (
-          <g stroke={wholeColor} strokeWidth={4} pointerEvents="none">
+          <g style={{ stroke: wholeColor }} strokeWidth={4} pointerEvents="none">
             <line x1={2} y1={2} x2={38} y2={38} />
             <line x1={38} y1={2} x2={2} y2={38} />
           </g>
