@@ -5,6 +5,11 @@
 > Aprobado el 2026-11-18. Cualquier cambio de criterio se registra acá antes de implementarse.
 > **2026-11-18 — Identidad de producto:** cada edición tiene su color propio como acento principal. Clinic usa el
 > cian clínico; el verde Velatrix queda reservado a la marca institucional (logotipo y recursos corporativos).
+> **2026-11-19 — Familia Velatrix One · Projects:** se incorpora **Projects** (gestión de proyectos y equipos,
+> acento azul eléctrico `#3B82F6`). Vive en un repositorio propio (`C:\pythonTasks`) y su capa de producto está en
+> `pythonTasks/docs/identidad-projects.md`. Diferenciación equilibrada: los productos comparten lenguaje visual,
+> tipografía, iconografía, componentes base y accesibilidad, pero cada uno puede tener paleta, navegación, dashboard,
+> composición y componentes propios; no son la misma interfaz con otro color.
 
 ---
 
@@ -79,6 +84,7 @@ La falta de un recurso no bloquea el desarrollo: se usa el recurso existente o t
 | Clinic | `#22D3EE` (implementado) |
 | Workshop | `#FB923C` (a definir y verificar) |
 | Retail | `#A78BFA` (a definir y verificar) |
+| Projects | `#3B82F6` (definido y verificado; producto aparte, ver `pythonTasks/docs/identidad-projects.md`) |
 Cada edición redefine solo la capa de producto (`--product-*`); el resto del sistema no cambia.
 
 ---
